@@ -1,0 +1,31 @@
+<!-- VitalGuard/templates/VitalGuard/patient_entry.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Entry</title>
+</head>
+<body>
+    <h2>Patient Entry Form</h2>
+    <form method="post" action="{% url 'VitalGuard:process_patient_entry' %}">
+        {% csrf_token %}
+        <label for="name">Name:</label>
+        <input type="text" name="name" required>
+        <br>
+        <label for="surname">Surname:</label>
+        <input type="text" name="surname" required>
+        <br>
+        <label for="device_tag">Device tag:</label>
+        <input type="text" name="device_tag" required>
+        <br>
+        <label for="age">Age:</label>
+        <input type="text" name="age" required>
+        <br>
+        <label for="description">Description:</label>
+        <input type="text" name="description" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
