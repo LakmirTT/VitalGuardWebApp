@@ -37,3 +37,17 @@
     - urls.py                                     - `Mapping url patterns to views`
     - views.py                                    - `Request handling logic (API)`
 
+# CURL commands to test api:
+
+## Add new measurement:
+
+curl -X POST http://127.0.0.1:8000/vitalguard/measurement/ \
+     -H "Content-Type: application/json" \
+     -d '{
+           "patient": 1,
+           "time_taken": "1911-05-26T12:34:56Z",
+           "heart_rate": 99,
+           "body_temp": 99,
+           "ox_saturation": 99,
+           "blood_pressure": 99
+         }' > res.html
