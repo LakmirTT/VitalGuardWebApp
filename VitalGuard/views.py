@@ -2,8 +2,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
-from .models import User, Patient
-from .serializers import PatientSerializer, MeasurementSerializer
+from .models import User, Patient, Feedback
+from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -120,3 +120,60 @@ class PairingRequestView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class FeedbackView(APIView):
+    """
+    Get last feedback per device
+    """
+    def get_object(self, device_tag):
+        try:
+            try:
+                patient = Patient.objects.filter(device_tag=device_tag).first()
+            except Patient.DoesNotExist:
+                raise Http404
+            feedback = Feedback.objects.filter(patient=patient).first()
+            return feedback
+
+        except Feedback.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, format=None):
+        feedback = self.get_object(device_tag="asdfgflkgm2o4ing")
+        serializer = FeedbackSerializer(feedback)
+        
+        return Response(serializer.data)
+    
+class CredentialsCheckView(APIView):
+    """
+    Check user credentials
+    """
+    def get_object(self, username):
+        try:
+            return User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, format=None):
+        #return HttpResponse(request.data)
+
+        username = request.GET.get('username')
+        password = request.GET.get('password')
+
+        if not username or not password:
+            return Response({'detail': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = self.get_object(username)
+            if user.check_credentials(password):
+                if user.is_caretaker():
+                    return HttpResponse('CT')
+                elif user.is_doctor():
+                    return HttpResponse('DR')
+                else:
+                    return HttpResponse('NA')
+            else:
+                return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_403_FORBIDDEN)
+
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+

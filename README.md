@@ -41,6 +41,7 @@
 
 ## Add new measurement:
 
+```
 curl -X POST http://127.0.0.1:8000/vitalguard/measurement/ \
      -H "Content-Type: application/json" \
      -d '{
@@ -51,3 +52,10 @@ curl -X POST http://127.0.0.1:8000/vitalguard/measurement/ \
            "ox_saturation": 99,
            "blood_pressure": 99
          }' > res.html
+```
+
+## Verufy user credentials & check user type:
+
+'''
+curl -X GET "http://127.0.0.1:8000/vitalguard/api/users/check_credentials/?username=j_smith&password=12345"
+'''

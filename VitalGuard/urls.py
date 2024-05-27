@@ -11,16 +11,26 @@ urlpatterns = [
     path('patient_entry/', views.patient_entry, name='patient_entry'),
     path('process_patient_entry/', views.process_patient_entry, name='process_patient_entry'),
     
+    #   device entries
+
     # ex: /vitalguard/patients/
-    path('patients/', views.PatientList.as_view()),
+    path('api/patients/', views.PatientList.as_view()),
     # ex: /vitalguard/patients/1
-    path('patients/<int:pk>', views.PatientData.as_view()),
+    path('api/patients/<int:pk>', views.PatientData.as_view()),
 
     # ex: /vitalguard/measurement/
-    path('measurement/', views.MeasurementView.as_view()),
+    path('api/measurement/', views.MeasurementView.as_view()),
 
     # ex: /vitalguard/pair_req/xzxzz
-    path('pair_req/', views.PairingRequestView.as_view())
+    path('api/device/pair_req/', views.PairingRequestView.as_view()),
+
+    # ex: /get_last_feedback/XXXX
+    path('api/get_last_feedback/', views.FeedbackView.as_view()),
+
+    #   user entries
+    path('api/users/check_credentials/', views.CredentialsCheckView.as_view())
+
+
 
 
 

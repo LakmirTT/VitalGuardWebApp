@@ -26,12 +26,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['name', 'username', 'password']
 
-class ThresholdSerializer(serializers.Serializer):
+class ThresholdSerializer(serializers.ModelSerializer):
     class Meta():
         model = Threshold
         fields = ['patient', 'time_changed', 'heart_rate', 'body_temp', 'ox_saturation', 'blood_pressure']
 
-class FeedbackSerializer(serializers.Serializer):
+class FeedbackSerializer(serializers.ModelSerializer):
     class Meta():
         model = Feedback
         fields = ['patient', 'doctor', 'header', 'text', 'time']

@@ -1,2 +1,4 @@
 __pycache__/
 *.py[cod]
+mysite/__pycache__/*
+VitalGuard/__pycache__/

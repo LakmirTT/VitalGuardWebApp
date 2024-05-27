@@ -31,13 +31,13 @@ class Measurement(models.Model):
 
 class User(models.Model):
     def __str__(self):
-        return '%s %s' % (self.type, self.name)
+        return '%s %s' % (self.user_type, self.name)
     
     def is_doctor(self):
-        return type == self.UserType.DOCTOR
+        return self.user_type == 'DR'
     
     def is_caretaker(self):
-        return type == self.UserType.CARETAKER
+        return self.user_type == 'CT'
     
     def check_credentials(self, password):
         return (self.password == password)
@@ -54,7 +54,7 @@ class User(models.Model):
         CARETAKER = "CT", _("Caretaker")
         DOCTOR = "DR", _("Doctor")
     
-    type = models.CharField(
+    user_type = models.CharField(
         max_length=2,
         choices=UserType,
         default=UserType.DOCTOR
