@@ -17,7 +17,10 @@ urlpatterns = [
     path('patients/<int:pk>', views.PatientData.as_view()),
 
     # ex: /vitalguard/measurement/
-    path('measurement/', views.MeasurementView.as_view())
+    path('measurement/', views.MeasurementView.as_view()),
+
+    # ex: /vitalguard/pair_req/xzxzz
+    path('pair_req/', views.PairingRequestView.as_view())
 
 
 

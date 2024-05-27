@@ -6,9 +6,12 @@ Form encoded input/output for API with respect to each model
 """
 
 class PatientSerializer(serializers.ModelSerializer):
+    #name = serializers.CharField(max_length=25, required=False)
+    #surname = serializers.CharField(max_length=25, required=False)
+    
     class Meta():
         model = Patient
-        fields = ['name', 'surname', 'device_tag', 'age', 'description']
+        fields = ['name', 'surname', 'device_tag', 'age', 'description', 'is_paired']
 
 class MeasurementSerializer(serializers.ModelSerializer):
     class Meta():

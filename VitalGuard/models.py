@@ -10,11 +10,12 @@ class Patient(models.Model):
         return '%s %s %d y.o.' % (self.name, self.surname, self.age)
     
     # fields
-    name = models.CharField(max_length=25)
-    surname = models.CharField(max_length=25)
-    device_tag = models.CharField(max_length=50)
-    age = models.IntegerField(default=0)
-    description = models.CharField(max_length=200)
+    name = models.CharField(max_length=25, blank=True)
+    surname = models.CharField(max_length=25, blank=True)
+    device_tag = models.CharField(max_length=50, blank=True)
+    age = models.IntegerField(default=0, blank=True)
+    description = models.CharField(max_length=200, blank=True)
+    is_paired = models.BooleanField(default=False)
 
 class Measurement(models.Model):
     def __str__(self):
