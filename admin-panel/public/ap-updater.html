@@ -91,8 +91,9 @@
 
       async function fetchFileContent(fileName) {
         try {
-          const response = await fetch(`http://localhost:3000/get-source?filename=${encodeURIComponent(fileName)}`);
-          const fileContent = await response.text();
+          const response = await fetch(`http://localhost:8000/vitalguard/admin/get_source_file?filename=${encodeURIComponent(fileName)}`);
+          const jsondata = await response.json();
+          const fileContent = jsondata.data;
           editor.setValue(fileContent, -1);
           
         } catch (error) {

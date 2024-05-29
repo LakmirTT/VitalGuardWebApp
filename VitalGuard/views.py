@@ -66,7 +66,7 @@ def admin_updater(request):
 def get_source_filenames(request):
     return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
 
-def get_source_data(request):
+def get_source_file(request):
     filename = request.GET.get('filename')
     with open('admin-panel/versions-source/' + filename, 'r') as file:
         data = file.read()
