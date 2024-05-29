@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
+import os
 
 
 def index(request):
@@ -61,6 +62,9 @@ def admin_index(request):
 def admin_updater(request):
     content = {}
     return render(request, 'admin-panel/public/ap-updater.html', content)
+
+def get_source_filenames(request):
+    return JsonResponse({'filenames': os.listdir('admin-panel/versions_source')})
     
 class PatientList(APIView):
     """
