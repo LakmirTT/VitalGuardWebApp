@@ -54,6 +54,14 @@ def process_patient_entry(request):
     else:
         return HttpResponse('Cannot process request')
     
+def admin_index(request):
+    content = {}
+    return render(request, 'admin-panel/public/ap-index.html', content)
+
+def admin_updater(request):
+    content = {}
+    return render(request, 'admin-panel/public/ap-updater.html', content)
+    
 class PatientList(APIView):
     """
     Get all patients (GET), or add new (POST)
