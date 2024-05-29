@@ -64,7 +64,7 @@ def admin_updater(request):
     return render(request, 'admin-panel/public/ap-updater.html', content)
 
 def get_source_filenames(request):
-    return JsonResponse({'filenames': os.listdir('admin-panel/versions_source')})
+    return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
     
 class PatientList(APIView):
     """

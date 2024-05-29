@@ -71,8 +71,9 @@
     <script>
       async function loadFiles() {
         try {
-          const response = await fetch('http://localhost:3000/get-source-names');
-          const fileNames = await response.json(); 
+          const response = await fetch('http://localhost:8000/vitalguard/admin/get_source_filenames/');
+          const jsondata = await response.json(); 
+          const fileNames = jsondata.filenames;
           fileNames.sort((a, b) => b.localeCompare(a));
           fileNames.forEach(name => {
             addButton(name);
