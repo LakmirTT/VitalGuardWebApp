@@ -11,6 +11,8 @@ urlpatterns = [
     path('patient_entry/', views.patient_entry, name='patient_entry'),
     path('process_patient_entry/', views.process_patient_entry, name='process_patient_entry'),
     
+    #   device entries
+
     # ex: /vitalguard/patients/
     path('api/patients/', views.PatientList.as_view()),
     # ex: /vitalguard/patients/1
@@ -19,7 +21,7 @@ urlpatterns = [
     # ex: /vitalguard/measurement/
     path('api/measurement/', views.MeasurementView.as_view()),
 
-    # ex: /vitalguard/pair_req/xzxzz
+    # see README
     path('api/device/pair_req/', views.PairingRequestView.as_view()),
 
     # ex: /get_last_feedback/XXXX
@@ -27,6 +29,7 @@ urlpatterns = [
 
     #   user entries
     path('api/users/check_credentials/', views.CredentialsCheckView.as_view()),
+
 
     path('admin/index/', views.admin_index, name='admin_index'),
     path('admin/updater/', views.admin_updater, name='admin_updater'),

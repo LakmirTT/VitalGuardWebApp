@@ -54,8 +54,25 @@ curl -X POST http://127.0.0.1:8000/vitalguard/measurement/ \
          }' > res.html
 ```
 
-## Verufy user credentials & check user type:
+## Verify user credentials & check user type:
 
-'''
-curl -X GET "http://127.0.0.1:8000/vitalguard/api/users/check_credentials/?username=j_smith&password=12345"
-'''
+```
+curl -X POST http://127.0.0.1:8000/vitalguard/api/users/check_credentials/ \
+     -H "Content-Type: application/json" \
+     -d '{
+           "username": "j_smith",
+           "password": "12345"
+         }'
+```
+
+## Pairing request:
+
+```
+curl -X POST http://127.0.0.1:8000/vitalguard/api/device/pair_req/ \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "test_req",
+           "surname": "test_req_surname",
+           "device_tag": "test_device_tag"
+         }'
+```
