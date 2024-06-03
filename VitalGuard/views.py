@@ -153,11 +153,10 @@ class CredentialsCheckView(APIView):
         except User.DoesNotExist:
             raise Http404
     
-    def get(self, request, format=None):
-        #return HttpResponse(request.data)
+    def post(self, request, format=None):
 
-        username = request.GET.get('username')
-        password = request.GET.get('password')
+        username = request.data['username']
+        password = request.data['password']
 
         if not username or not password:
             return Response({'detail': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -176,4 +175,4 @@ class CredentialsCheckView(APIView):
 
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-
+    
