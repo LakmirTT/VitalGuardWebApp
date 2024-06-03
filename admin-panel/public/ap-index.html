@@ -105,12 +105,15 @@
   </body>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-    fetch('http://localhost:8000/vitalguard/api/patients')
+    console.log("Fetching patients....");
+    fetch('http://127.0.0.1:8000/vitalguard/api/patients/')
     .then(response => response.json())
     .then(data => {
         const tableBody = document.querySelector('.table-striped tbody');
+        
         data.forEach(item => {
             const row = document.createElement('tr');
+            console.log(item);
             row.innerHTML = `
                 <td>${item.name}</td>
                 <td>${item.surname}</td>
