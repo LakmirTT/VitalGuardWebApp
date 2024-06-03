@@ -21,14 +21,16 @@ urlpatterns = [
     # ex: /vitalguard/measurement/
     path('api/measurement/', views.MeasurementView.as_view()),
 
-    # ex: /vitalguard/pair_req/xzxzz
+    # see README
     path('api/device/pair_req/', views.PairingRequestView.as_view()),
 
     # ex: /get_last_feedback/XXXX
     path('api/get_last_feedback/', views.FeedbackView.as_view()),
 
     #   user entries
-    path('api/users/check_credentials/', views.CredentialsCheckView.as_view())
+    path('api/users/check_credentials/', views.CredentialsCheckView.as_view()),
+
+    
 
 
 

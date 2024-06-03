@@ -65,3 +65,15 @@ curl -X POST http://127.0.0.1:8000/vitalguard/api/users/check_credentials/ \
            "password": "12345"
          }'
 ```
+
+## Pairing request:
+
+```
+curl -X POST http://127.0.0.1:8000/vitalguard/api/device/pair_req/ \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "test_req",
+           "surname": "test_req_surname",
+           "device_tag": "test_device_tag"
+         }'
+```

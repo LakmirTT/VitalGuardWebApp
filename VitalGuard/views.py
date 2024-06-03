@@ -112,9 +112,17 @@ class MeasurementView(APIView):
 
 class PairingRequestView(APIView):
     """
-    Request device pairing
+    Request device pairing.
+    Expected payload: name, surname, device_tag
     """
     def post(self, request, format=None):
+        name = request.data['name']
+        surname = request.data['surname']
+        device_tag = request.data['device_tag']
+
+        if (not name or not surname or not device_tag):
+            return Response({'detail': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = PatientSerializer(data=request.data)
         if (serializer.is_valid()):
             serializer.save()
