@@ -26,12 +26,15 @@
     <nav class="navbar navbar-expand-md bg-light">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">
-          <img class="d-inline-block" width="50" height="55" src="/img/logo.png" alt="Brand Logo">
+          <img class="d-inline-block" width="50" height="55" src="/admin-panel/img/logo.png" alt="Brand Logo">
         </a>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
               <a class="nav-link active" aria-current="page" href="#">Device list</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/vitalguard/admin/updater">Updater</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/vitalguard/admin/updater">Updater</a>
@@ -104,7 +107,7 @@
     </div>
   </body>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    window.onload = function() {
     fetch('http://localhost:8000/vitalguard/api/patients')
     .then(response => response.json())
     .then(data => {
@@ -122,6 +125,6 @@
         });
     })
     .catch(error => console.error('Error:', error));
-    });
+    };
   </script>
 </html>
