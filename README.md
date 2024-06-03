@@ -54,7 +54,6 @@ curl -X POST http://127.0.0.1:8000/vitalguard/measurement/ \
          }' > res.html
 ```
 
-
 ## Verify user credentials & check user type:
 
 ```

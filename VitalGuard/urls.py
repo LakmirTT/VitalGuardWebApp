@@ -30,12 +30,12 @@ urlpatterns = [
     #   user entries
     path('api/users/check_credentials/', views.CredentialsCheckView.as_view()),
 
-    
 
+    path('admin/index/', views.admin_index, name='admin_index'),
+    path('admin/updater/', views.admin_updater, name='admin_updater'),
 
-
-
-
+    path('admin/get_source_filenames/', views.get_source_filenames, name='get_source_filenames'),
+    path('admin/get_source_file/', views.get_source_file, name='get_source_file'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

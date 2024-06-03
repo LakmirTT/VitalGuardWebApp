@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
+import os
 
 
 def index(request):
@@ -53,6 +54,23 @@ def process_patient_entry(request):
         return HttpResponse('entry added')
     else:
         return HttpResponse('Cannot process request')
+    
+def admin_index(request):
+    content = {}
+    return render(request, 'admin-panel/public/ap-index.html', content)
+
+def admin_updater(request):
+    content = {}
+    return render(request, 'admin-panel/public/ap-updater.html', content)
+
+def get_source_filenames(request):
+    return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
+
+def get_source_file(request):
+    filename = request.GET.get('filename')
+    with open('admin-panel/versions-source/' + filename, 'r') as file:
+        data = file.read()
+    return JsonResponse({'data': data})
     
 class PatientList(APIView):
     """
@@ -161,6 +179,7 @@ class CredentialsCheckView(APIView):
         except User.DoesNotExist:
             raise Http404
     
+
     def post(self, request, format=None):
 
         username = request.data['username']
@@ -183,4 +202,3 @@ class CredentialsCheckView(APIView):
 
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-    
