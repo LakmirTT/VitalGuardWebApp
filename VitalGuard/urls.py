@@ -36,6 +36,7 @@ urlpatterns = [
 
     path('admin/index/', views.admin_index, name='admin_index'),
     path('admin/updater/', views.admin_updater, name='admin_updater'),
+    path('admin/database_manager/', views.admin_database_manager, name='admin_database_manager'),
 
     path('admin/get_source_filenames/', views.get_source_filenames, name='get_source_filenames'),
     path('admin/get_source_file/', views.get_source_file, name='get_source_file'),

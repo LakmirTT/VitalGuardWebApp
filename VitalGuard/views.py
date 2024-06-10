@@ -63,6 +63,10 @@ def admin_updater(request):
     content = {}
     return render(request, 'admin-panel/public/ap-updater.html', content)
 
+def admin_database_manager(request):
+    content = {}
+    return render(request, 'admin-panel/public/ap-database-manager.html', content)
+
 def get_source_filenames(request):
     return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
 

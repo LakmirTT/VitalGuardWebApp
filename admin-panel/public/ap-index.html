@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
+    <title>Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
       body {
@@ -23,7 +23,7 @@
     </style>
   </head>
   <body>
-    <nav class="navbar navbar-expand-md bg-light">
+    <nav class="navbar navbar-expand-md bg-light border border-info-subtle border-start-0 border-end-0 border-top-0 shadow-sm">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">
           <img class="d-inline-block" width="50" height="55" src="/admin-panel/img/logo.png" alt="Brand Logo">
@@ -37,7 +37,7 @@
               <a class="nav-link" href="/vitalguard/admin/updater">Updater</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/vitalguard/admin/updater">Updater</a>
+              <a class="nav-link" href="/vitalguard/admin/database_manager">Database Manager</a>
             </li>
           </ul>
           <span class="navbar-text username">Username</span>
@@ -107,8 +107,8 @@
     </div>
   </body>
   <script>
-    window.onload = function() {
-    fetch('http://localhost:8000/vitalguard/api/patients')
+    window.onload = () => {
+    fetch('/vitalguard/api/patients')
     .then(response => response.json())
     .then(data => {
         const tableBody = document.querySelector('.table-striped tbody');
