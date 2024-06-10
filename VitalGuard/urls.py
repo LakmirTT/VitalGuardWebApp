@@ -30,7 +30,7 @@ urlpatterns = [
     #   user entries
     # credentials check
     path('api/users/check_credentials/', views.CredentialsCheckView.as_view()),
-    # get measurements per patient
+    # get measurements for all patients
     path('api/users/get_measurements/', views.MeasurementListView.as_view()),
 
 

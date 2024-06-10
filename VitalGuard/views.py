@@ -130,13 +130,10 @@ class MeasurementView(APIView):
 
 class MeasurementListView(APIView):
     """
-    Get all measurements per patient
+    Get all measurements for all patients
     """
     def get(self, request, format=None):
-        id = request.data['id']
-        if (not id):
-            return Response({'detail': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
-        measurements = Measurement.objects.filter(patient=id)
+        measurements = Measurement.objects.all()
         serializer = MeasurementSerializer(measurements, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
