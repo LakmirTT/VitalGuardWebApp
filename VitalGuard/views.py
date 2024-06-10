@@ -2,7 +2,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
-from .models import User, Patient, Feedback
+from .models import User, Patient, Feedback, Measurement
 from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer
 
 from rest_framework import status
@@ -127,6 +127,20 @@ class MeasurementView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MeasurementListView(APIView):
+    """
+    Get all measurements per patient
+    """
+    def get(self, request, format=None):
+        id = request.data['id']
+        if (not id):
+            return Response({'detail': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        measurements = Measurement.objects.filter(patient=id)
+        serializer = MeasurementSerializer(measurements, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 
 class PairingRequestView(APIView):
     """
