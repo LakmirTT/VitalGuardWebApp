@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
 from .models import User, Patient, Feedback, Measurement
-from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer
+from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer, UserSerializer
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -203,11 +203,15 @@ class CredentialsCheckView(APIView):
             user = self.get_object(username)
             if user.check_credentials(password):
                 if user.is_caretaker():
-                    return HttpResponse('CT')
+                    related_users = User.objects.filter(user_type='DR', patient=user.patient)
+                    serializer = UserSerializer(related_users, many=True)
+                    return Response({'type': 'CT', 'related_users': serializer.data}, status=status.HTTP_200_OK)
                 elif user.is_doctor():
-                    return HttpResponse('DR')
+                    related_users = User.objects.filter(user_type='CT', patient=user.patient)
+                    serializer = UserSerializer(related_users, many=True)
+                    return Response({'type': 'DR', 'related_users': serializer.data}, status=status.HTTP_200_OK)
                 else:
-                    return HttpResponse('NA')
+                    return Response({'type': 'NA'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_403_FORBIDDEN)
 
