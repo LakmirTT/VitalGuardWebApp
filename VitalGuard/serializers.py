@@ -24,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     class Meta():
         model = User
-        fields = ['name', 'username', 'user_type']
+        fields = ['name', 'email', 'user_type']
 
 class ThresholdSerializer(serializers.ModelSerializer):
     class Meta():

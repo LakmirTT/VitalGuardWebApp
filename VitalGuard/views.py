@@ -184,23 +184,23 @@ class CredentialsCheckView(APIView):
     """
     Check user credentials
     """
-    def get_object(self, username):
+    def get_object(self, email):
         try:
-            return User.objects.get(username=username)
+            return User.objects.get(email=email)
         except User.DoesNotExist:
             raise Http404
     
 
     def post(self, request, format=None):
 
-        username = request.data['username']
+        email = request.data['email']
         password = request.data['password']
 
-        if not username or not password:
-            return Response({'detail': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not email or not password:
+            return Response({'detail': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            user = self.get_object(username)
+            user = self.get_object(email)
             if user.check_credentials(password):
                 if user.is_caretaker():
                     related_users = User.objects.filter(user_type='DR', patient=user.patient)
