@@ -114,12 +114,13 @@
         const tableBody = document.querySelector('.table-striped tbody');
         data.forEach(item => {
             const row = document.createElement('tr');
+            console.log(item);
             row.innerHTML = `
                 <td>${item.name}</td>
                 <td>${item.surname}</td>
-                <td>${item.deviceTag}</td>
+                <td>${item.device_tag}</td>
                 <td>${item.age}</td>
-                <td>${item.isPaired ? 'Yes' : 'No'}</td>
+                <td>${item.is_paired ? 'Yes' : 'No'}</td>
             `;
             tableBody.appendChild(row);
         });

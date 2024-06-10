@@ -28,7 +28,10 @@ urlpatterns = [
     path('api/get_last_feedback/', views.FeedbackView.as_view()),
 
     #   user entries
+    # credentials check
     path('api/users/check_credentials/', views.CredentialsCheckView.as_view()),
+    # get measurements for all patients
+    path('api/users/get_measurements/', views.MeasurementListView.as_view()),
 
 
     path('admin/index/', views.admin_index, name='admin_index'),

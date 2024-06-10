@@ -76,3 +76,11 @@ curl -X POST http://127.0.0.1:8000/vitalguard/api/device/pair_req/ \
            "device_tag": "test_device_tag"
          }'
 ```
+
+## Get patient measurements (no token auth so far):
+
+```
+curl -X GET http://127.0.0.1:8000/vitalguard/api/users/get_measurements/ -H "Content-Type: application/json"
+```
+
+# TODO: token auth
