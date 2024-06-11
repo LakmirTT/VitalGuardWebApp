@@ -2,8 +2,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
-from .models import User, Patient, Feedback, Measurement
-from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer, UserSerializer
+from .models import User, Patient, Feedback
+from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -12,6 +12,9 @@ from rest_framework.views import APIView
 
 # Create your views here.
 
+from django.db import connection, DatabaseError
+from rest_framework import status
+from django.apps import apps
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
@@ -54,27 +57,27 @@ def process_patient_entry(request):
         return HttpResponse('entry added')
     else:
         return HttpResponse('Cannot process request')
-    
-def admin_index(request):
-    content = {}
-    return render(request, 'admin-panel/public/ap-index.html', content)
 
-def admin_updater(request):
-    content = {}
-    return render(request, 'admin-panel/public/ap-updater.html', content)
+class AdminUpdaterView(APIView):
+    def get(self, request, format=None):
+        content = {}
+        return render(request, 'admin-panel/public/ap-updater.html', content)
 
-def admin_database_manager(request):
-    content = {}
-    return render(request, 'admin-panel/public/ap-database-manager.html', content)
+class AdminDatabaseManagerView(APIView):
+    def get(self, request, format=None):
+        content = {}
+        return render(request, 'admin-panel/public/ap-database-manager.html', content)
 
-def get_source_filenames(request):
-    return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
+class GetSourceFilenamesView(APIView):
+    def get(self, request, format=None):
+        return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
 
-def get_source_file(request):
-    filename = request.GET.get('filename')
-    with open('admin-panel/versions-source/' + filename, 'r') as file:
-        data = file.read()
-    return JsonResponse({'data': data})
+class GetSourceFileView(APIView):
+    def get(self, request, format=None):
+        filename = request.GET.get('filename')
+        with open('admin-panel/versions-source/' + filename, 'r') as file:
+            data = file.read()
+        return JsonResponse({'data': data})
     
 class PatientList(APIView):
     """
@@ -131,17 +134,6 @@ class MeasurementView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class MeasurementListView(APIView):
-    """
-    Get all measurements for all patients
-    """
-    def get(self, request, format=None):
-        measurements = Measurement.objects.all()
-        serializer = MeasurementSerializer(measurements, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 
 class PairingRequestView(APIView):
     """
@@ -207,17 +199,71 @@ class CredentialsCheckView(APIView):
             user = self.get_object(username)
             if user.check_credentials(password):
                 if user.is_caretaker():
-                    related_users = User.objects.filter(user_type='DR', patient=user.patient)
-                    serializer = UserSerializer(related_users, many=True)
-                    return Response({'type': 'CT', 'related_users': serializer.data}, status=status.HTTP_200_OK)
+                    return HttpResponse('CT')
                 elif user.is_doctor():
-                    related_users = User.objects.filter(user_type='CT', patient=user.patient)
-                    serializer = UserSerializer(related_users, many=True)
-                    return Response({'type': 'DR', 'related_users': serializer.data}, status=status.HTTP_200_OK)
+                    return HttpResponse('DR')
                 else:
-                    return Response({'type': 'NA'}, status=status.HTTP_400_BAD_REQUEST)
+                    return HttpResponse('NA')
             else:
                 return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_403_FORBIDDEN)
 
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class SchemaView(APIView):
+    def get(self, request, format=None):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = cursor.fetchall()
+                schema = {}
+
+                for table in tables:
+                    table_name = table[0]
+                    cursor.execute(f"PRAGMA table_info({table_name})")
+                    fields = cursor.fetchall()
+
+                    cursor.execute(f"PRAGMA foreign_key_list({table_name})")
+                    foreign_keys = cursor.fetchall()
+
+                    if table_name not in schema:
+                        schema[table_name] = []
+
+                    for field in fields:
+                        field_name = field[1]
+                        field_type = field[2]
+                        if field[5]: is_pk = True
+                        else: is_pk = False
+                        related_model = None
+                        related_field = None
+                        for fk in foreign_keys:
+                            if fk[3] == field_name:
+                                related_model = fk[2]
+                                related_field = fk[4]
+
+                        schema[table_name].append({
+                            'name': field_name,
+                            'type': field_type,
+                            'pk': is_pk,
+                            'related_field': related_field,
+                            'related_model': related_model
+                        })
+
+                return JsonResponse(schema)
+
+        except DatabaseError:
+            return Response({'error': 'Failed to retrieve schema details.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+class ExecuteQueryView(APIView):
+    def post(self, request, format=None):
+        query = request.data['query']
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                results = cursor.fetchall()
+
+            return Response({'results': results})
+
+        except DatabaseError:
+            return Response({'error': 'Invalid query.'}, status=status.HTTP_400_BAD_REQUEST)

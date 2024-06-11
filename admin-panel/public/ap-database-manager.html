@@ -1,10 +1,13 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js" type="text/javascript" charset="utf-8"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
     <style>
       body {
         background-color: #a9d5e0;
@@ -31,13 +34,10 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="/vitalguard/admin/index">Device list</a>
+              <a class="nav-link active" href="#">Database Manager</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/vitalguard/admin/updater">Updater</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="#">Database Manager</a>
             </li>
           </ul>
           <span class="navbar-text username">Username</span>
@@ -49,21 +49,218 @@
     <div class="d-flex main-content">
         <div class="container-fluid h-100">
           <div class="row text-center h-100">
-            <div class="col-4 text-center">
-              b
-            </div>
-            <div class="col border border-info border-top-0 h-100">
-              <div class="row h-25 border border-start-0 border-top-0 border-end-0 border-info">
-                
+            <div class="col-5">
+              <div class="row pt-5 ps-5 pe-5 pb-0" style="height: 70%;">
+                <div id="editor" class="h-100"></div>
               </div>
-              <div class="row h-75">
-                
+              <div class="row justify-content-center pt-5" style="height: 30%;">
+                <button class="btn btn-primary text-center" style="height: 40px; width: 100px;" onclick="executeQuery()">Execute</button>
+              </div>
+            </div>
+            <div class="col border border-info border-top-0 h-100 d-flex flex-column p-0">
+              <div class="h-100">
+                <div id="database-schema" class="container-fluid h-100" style="box-shadow: inset 0 0 30px #000000; background-color: #c9c9c9;"></div>
               </div>
             </div>
         </div> 
     </div>
   </body>
   <script>
-    
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/textmate");
+    editor.session.setMode("ace/mode/sql");
+    editor.setValue('-- EXAMPLE:\nSELECT * FROM VitalGuard_user\nWHERE id = 1;\n');
+    editor.clearSelection();
+    editor.setShowPrintMargin(false);
+
+    window.onload = drawSchema;
+    async function drawSchema() {
+      fetch('/vitalguard/api/get_schema/')
+    .then(response => response.json())
+    .then(schema => {
+        const nodes = [];
+        const edges = [];
+        const tableGroups = {};
+        const brightColors = [
+            '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FF8C33', '#33FFF6', '#F6FF33', '#FF3333',
+            '#33FF99', '#9933FF', '#FF3399', '#33FFCC', '#FF66CC', '#66FF33', '#33CCFF', '#FF6633',
+            '#33FF33', '#FF33FF', '#66CCFF', '#FF9966'
+        ];
+
+        Object.keys(schema).forEach((modelName, index) => {
+            const tableId = `table_${modelName}`;
+            tableFields = ``;
+            schema[modelName].forEach(field => {
+              pk = field.pk ? `{PK}` : ``;
+              tableFields += `${pk} ${field.name}: [${field.type}]\n`;
+            });
+            const tableLabel = `
+                    <b>${modelName}</b>
+                    
+                    ${tableFields}`;
+            nodes.push({
+                id: tableId,
+                label: tableLabel,
+                color: {
+                    background: brightColors[index % brightColors.length], // background color
+                    border: '#000000' // border color
+                },
+                shape: 'box',
+                font: { multi: 'html' },
+                margin: 10,
+                fixed: false
+            });
+
+            tableGroups[modelName] = tableId;
+        });
+
+        Object.keys(schema).forEach(modelName => {
+            schema[modelName].forEach(field => {
+                if (field.related_field && field.related_model) {
+                    edges.push({
+                        from: tableGroups[modelName],
+                        to: tableGroups[field.related_model],
+                        label: field.name,
+                        arrows: 'to',
+                        font: { 
+                          align: 'middle'
+                         },
+                        smooth: {
+                            type: 'dynamic',
+                            roundness: 0.4
+                        },
+                        color: {
+                          inherit: 'from'
+                        }
+                    });
+                }
+            });
+        });
+
+        const container = document.getElementById('database-schema');
+        const data = {
+            nodes: new vis.DataSet(nodes),
+            edges: new vis.DataSet(edges)
+        };
+        const options = {
+            layout: {
+                randomSeed: 363755,
+                improvedLayout: true,
+            },
+            edges: {
+                smooth: {
+                    type: 'dynamic',
+                    roundness: 0.4
+                }
+            },
+            nodes: {
+                shape: 'box',
+                margin: 10,
+                widthConstraint: {
+                    maximum: 250
+                },
+                font: {
+                    multi: 'html'
+                }
+            },
+            physics: {
+                enabled: true,
+                solver: 'barnesHut',
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    centralGravity: 0.3,
+                    springLength: 95,
+                    springConstant: 0.04,
+                    damping: 0.09,
+                    avoidOverlap: 1
+                },
+                stabilization: {
+                    iterations: 200,
+                    updateInterval: 25
+                }
+            },
+            interaction: {
+                dragNodes: true,
+                dragView: true,
+                zoomView: true
+            }
+        };
+        const network = new vis.Network(container, data, options);
+
+        network.once('stabilizationIterationsDone', function() {
+            network.setOptions({
+                physics: {
+                    enabled: false
+                }
+            });
+        });
+    })
+    .catch(error => console.error('Error fetching schema:', error));
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+    }
+    async function executeQuery() {
+      const query = editor.getValue();
+      fetch('/vitalguard/api/execute_query/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ query })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Open a new window
+        const newWindow = window.open("", "_blank", "width=500,height=500");
+        // Create a table element
+        const table = document.createElement("table");
+        table.style.borderCollapse = "collapse";
+        table.style.width = "100%";
+        // Create table header row
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        Object.keys(data.results[0]).forEach(key => {
+          const th = document.createElement("th");
+          th.style.border = "1px solid black";
+          th.style.padding = "8px";
+          th.textContent = key;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        // Create table body rows
+        const tbody = document.createElement("tbody");
+        data.results.forEach(row => {
+          const tr = document.createElement("tr");
+          Object.values(row).forEach(value => {
+        const td = document.createElement("td");
+        td.style.border = "1px solid black";
+        td.style.padding = "8px";
+        td.textContent = value;
+        tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        // Append the table to the new window
+        newWindow.document.body.appendChild(table);
+      })
+      .catch(error => console.error('Error executing query:', error));
+    }
   </script>
 </html>

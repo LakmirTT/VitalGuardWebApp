@@ -31,15 +31,18 @@ urlpatterns = [
     # credentials check
     path('api/users/check_credentials/', views.CredentialsCheckView.as_view()),
     # get measurements for all patients
-    path('api/users/get_measurements/', views.MeasurementListView.as_view()),
+    path('api/users/get_measurements/', views.MeasurementView.as_view()),
+
+    path('api/get_schema/', views.SchemaView.as_view(), name='get_schema'),
 
 
-    path('admin/index/', views.admin_index, name='admin_index'),
-    path('admin/updater/', views.admin_updater, name='admin_updater'),
-    path('admin/database_manager/', views.admin_database_manager, name='admin_database_manager'),
+    path('admin/updater/', views.AdminUpdaterView.as_view(), name='admin_updater'),
+    path('admin/database_manager/', views.AdminDatabaseManagerView.as_view(), name='admin_database_manager'),
 
-    path('admin/get_source_filenames/', views.get_source_filenames, name='get_source_filenames'),
-    path('admin/get_source_file/', views.get_source_file, name='get_source_file'),
+    path('api/device/get_source_filenames/', views.GetSourceFilenamesView.as_view(), name='get_source_filenames'),
+    path('api/device/get_source_file/', views.GetSourceFileView.as_view(), name='get_source_file'),
+
+    path('api/execute_query/', views.ExecuteQueryView.as_view(), name='execute_query'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -32,13 +32,10 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="/vitalguard/admin/index">Device list</a>
+              <a class="nav-link" href="/vitalguard/admin/database_manager">Database Manager</a>
             </li>
             <li class="nav-item">
               <a class="nav-link active" href="/vitalguard/admin/updater">Updater</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/vitalguard/admin/database_manager">Database Manager</a>
             </li>
           </ul>
           <span class="navbar-text username">Username</span>
@@ -74,7 +71,7 @@
     <script>
       async function loadFiles() {
         try {
-          const response = await fetch('http://localhost:8000/vitalguard/admin/get_source_filenames/');
+          const response = await fetch('/vitalguard/api/device/get_source_filenames/');
           const jsondata = await response.json(); 
           const fileNames = jsondata.filenames;
           fileNames.sort((a, b) => b.localeCompare(a));
@@ -94,7 +91,7 @@
 
       async function fetchFileContent(fileName) {
         try {
-          const response = await fetch(`http://localhost:8000/vitalguard/admin/get_source_file?filename=${encodeURIComponent(fileName)}`);
+          const response = await fetch(`/vitalguard/api/device/get_source_file?filename=${encodeURIComponent(fileName)}`);
           const jsondata = await response.json();
           const fileContent = jsondata.data;
           editor.setValue(fileContent, -1);
