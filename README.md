@@ -3,10 +3,15 @@
 1. `python3 -m pip install Django`
 2. `python3 -m pip install djangorestframework`
 
-# Run
+# Run:
 
 - cd to repo folder
 - run `python3 manage.py runserver`
+
+# Apply database changes:
+
+1. `python3 manage.py makemigrations`
+2. `python3 manage.py migrate`
 
 # Directory structure:
 
@@ -60,7 +65,7 @@ curl -X POST http://127.0.0.1:8000/vitalguard/measurement/ \
 curl -X POST http://127.0.0.1:8000/vitalguard/api/users/check_credentials/ \
      -H "Content-Type: application/json" \
      -d '{
-           "username": "j_smith",
+           "email": "j_smith@example.com",
            "password": "12345"
          }'
 ```
