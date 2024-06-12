@@ -201,15 +201,16 @@ class CredentialsCheckView(APIView):
         
         try:
             user = self.get_object(email)
+            patient_id = user.patient.pk
             if user.check_credentials(password):
                 if user.is_caretaker():
-                    related_users = User.objects.filter(user_type='DR', patient=user.patient)
+                    related_users = User.objects.filter(user_type='DR', patient=patient_id)
                     serializer = UserSerializer(related_users, many=True)
-                    return Response({'type': 'CT', 'related_users': serializer.data}, status=status.HTTP_200_OK)
+                    return Response({'type': 'CT', 'related_users': serializer.data, 'patient_id' : patient_id}, status=status.HTTP_200_OK)
                 elif user.is_doctor():
-                    related_users = User.objects.filter(user_type='CT', patient=user.patient)
+                    related_users = User.objects.filter(user_type='CT', patient=patient_id)
                     serializer = UserSerializer(related_users, many=True)
-                    return Response({'type': 'DR', 'related_users': serializer.data}, status=status.HTTP_200_OK)
+                    return Response({'type': 'DR', 'related_users': serializer.data, 'patient_id' : patient_id}, status=status.HTTP_200_OK)
                 else:
                     return Response({'type': 'NA'}, status=status.HTTP_400_BAD_REQUEST)
             else:
