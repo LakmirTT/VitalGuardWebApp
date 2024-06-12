@@ -51,7 +51,7 @@
           <div class="row text-center h-100">
             <div class="col-5">
               <div class="row pt-5 ps-5 pe-5 pb-0" style="height: 70%;">
-                <div id="editor" class="h-100"></div>
+                <div id="editor" class="h-100 border border-info-subtle"></div>
               </div>
               <div class="row justify-content-center pt-5" style="height: 30%;">
                 <button class="btn btn-primary text-center" style="height: 40px; width: 100px;" onclick="executeQuery()">Execute</button>
@@ -225,39 +225,35 @@
       })
       .then(response => response.json())
       .then(data => {
-        // Open a new window
-        const newWindow = window.open("", "_blank", "width=500,height=500");
-        // Create a table element
+        const newWindow = window.open("", "_blank", "width=800,height=500");
         const table = document.createElement("table");
         table.style.borderCollapse = "collapse";
         table.style.width = "100%";
-        // Create table header row
+
         const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-        Object.keys(data.results[0]).forEach(key => {
-          const th = document.createElement("th");
-          th.style.border = "1px solid black";
-          th.style.padding = "8px";
-          th.textContent = key;
-          headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
+        const trh = document.createElement("tr");
+        trh.style.backgroundColor = "#f8f9fa";
+        trh.style.borderBottom = "1px solid #dee2e6";
+
+        trh.innerHTML = Object.values(data.fields).map(field => `<th scope="col" style="padding: 8px; border: 1px solid #dee2e6;">${field}</th>`).join('');
+        thead.appendChild(trh);
         table.appendChild(thead);
-        // Create table body rows
+
         const tbody = document.createElement("tbody");
+
         data.results.forEach(row => {
-          const tr = document.createElement("tr");
-          Object.values(row).forEach(value => {
-        const td = document.createElement("td");
-        td.style.border = "1px solid black";
-        td.style.padding = "8px";
-        td.textContent = value;
-        tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
+          const trb = document.createElement("tr");
+          trb.style.borderBottom = "1px solid #dee2e6";
+
+          trb.innerHTML = Object.values(row).map(value => `<td style="padding: 8px; border: 1px solid #dee2e6;">${value}</td>`).join('');
+          tbody.appendChild(trb);
         });
+
         table.appendChild(tbody);
-        // Append the table to the new window
+
+        newWindow.document.body.style.fontFamily = "Arial, sans-serif";
+        newWindow.document.body.style.margin = "0";
+        newWindow.document.body.style.padding = "16px";
         newWindow.document.body.appendChild(table);
       })
       .catch(error => console.error('Error executing query:', error));

@@ -262,8 +262,9 @@ class ExecuteQueryView(APIView):
             with connection.cursor() as cursor:
                 cursor.execute(query)
                 results = cursor.fetchall()
+                fields = [desc[0] for desc in cursor.description]
 
-            return Response({'results': results})
+            return Response({'fields': fields, 'results': results})
 
         except DatabaseError:
             return Response({'error': 'Invalid query.'}, status=status.HTTP_400_BAD_REQUEST)

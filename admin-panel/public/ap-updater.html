@@ -12,9 +12,6 @@
         min-height: 100vh;
         overflow-x: hidden;
       }
-      .main-content {
-        height: 100vh;
-      }
       .nav-link.active {
         background-color: #d1e7e5;
       }
@@ -44,9 +41,9 @@
       </div>
     </nav>
     
-    <div class="d-flex main-content">
-        <div class="container-fluid text-center">
-            <div class="row">
+    <div class="main-content container-fluid">
+        
+            <div class="row" style="height: 100%;">
                 <div class="col-2 me-5 container-fluid bg-light border border-top-0 border-info-subtle shadow-sm">
                     <div id="source-dir" class="btn-group-vertical container-fluid gap-1 pt-1" role="group" aria-label="Version directory">
                     </div>
@@ -66,8 +63,9 @@
                     </div>
                 </div>
             </div>
-        </div>
+        
     </div>
+  </body>
     <script>
       async function loadFiles() {
         try {
@@ -114,5 +112,4 @@
         buttonGroup.appendChild(newButton);
       }
     </script>
-  </body>
 </html>
