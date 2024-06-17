@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
 from .models import User, Patient, Feedback, Measurement
-from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer, UserSerializer
+from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer, UserSerializer, PatientIdSerializer
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -201,16 +201,21 @@ class CredentialsCheckView(APIView):
         
         try:
             user = self.get_object(email)
-            patient_id = user.patient.pk
+            
+            #patient_id = user.patient.pk
             if user.check_credentials(password):
+                patients = Patient.objects.filter(pk=user.patient.pk).order_by('pk')
+                patient_serializer = PatientIdSerializer(patients, many=True)
                 if user.is_caretaker():
-                    related_users = User.objects.filter(user_type='DR', patient=patient_id)
-                    serializer = UserSerializer(related_users, many=True)
-                    return Response({'type': 'CT', 'related_users': serializer.data, 'patient_id' : patient_id}, status=status.HTTP_200_OK)
+                    rel_doctors = User.objects.filter(user_type='DR', patient__in=patients)
+                    doctor_serializer = UserSerializer(rel_doctors, many=True)
+                    serializer_list = [doctor_serializer.data, patient_serializer.data]
+                    return Response({'type': 'CT', 'data': serializer_list}, status=status.HTTP_200_OK)
                 elif user.is_doctor():
-                    related_users = User.objects.filter(user_type='CT', patient=patient_id)
-                    serializer = UserSerializer(related_users, many=True)
-                    return Response({'type': 'DR', 'related_users': serializer.data, 'patient_id' : patient_id}, status=status.HTTP_200_OK)
+                    rel_ctkrs = User.objects.filter(user_type='CT', patient__in=patients)
+                    ctkr_serializer = UserSerializer(rel_ctkrs, many=True)
+                    serializer_list = [ctkr_serializer.data, patient_serializer.data]
+                    return Response({'type': 'DR', 'data': serializer_list}, status=status.HTTP_200_OK)
                 else:
                     return Response({'type': 'NA'}, status=status.HTTP_400_BAD_REQUEST)
             else:

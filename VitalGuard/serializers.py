@@ -13,6 +13,11 @@ class PatientSerializer(serializers.ModelSerializer):
         model = Patient
         fields = ['name', 'surname', 'device_tag', 'age', 'description', 'is_paired']
 
+class PatientIdSerializer(serializers.ModelSerializer):
+    class Meta():
+        model = Patient
+        fields = ['pk']
+
 class MeasurementSerializer(serializers.ModelSerializer):
     class Meta():
         model = Measurement
