@@ -46,6 +46,7 @@ class User(models.Model):
     # fields
     name = models.CharField(max_length=25)
     username = models.CharField(max_length=25)
+    email = models.CharField(max_length=50, default="user@example.com")
     password = models.CharField(max_length=25)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
 
