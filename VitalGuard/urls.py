@@ -39,7 +39,7 @@ urlpatterns = [
     path('admin/updater/', views.AdminUpdaterView.as_view(), name='admin_updater'),
     path('admin/database_manager/', views.AdminDatabaseManagerView.as_view(), name='admin_database_manager'),
 
-    path('api/device/get_source_filenames/', views.GetSourceFilenamesView.as_view(), name='get_source_filenames'),
+    path('api/device/get_source_dir/', views.GetSourceDirView.as_view(), name='get_source_filenames'),
     path('api/device/get_source_file/', views.GetSourceFileView.as_view(), name='get_source_file'),
 
     path('api/execute_query/', views.ExecuteQueryView.as_view(), name='execute_query'),

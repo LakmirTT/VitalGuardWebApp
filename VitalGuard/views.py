@@ -19,6 +19,7 @@ from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 import os
+import os
 
 
 def index(request):
@@ -68,14 +69,27 @@ class AdminDatabaseManagerView(APIView):
         content = {}
         return render(request, 'admin-panel/public/ap-database-manager.html', content)
 
-class GetSourceFilenamesView(APIView):
+class GetSourceDirView(APIView):
     def get(self, request, format=None):
-        return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
+        def get_directory_structure(directory):
+            ignore_dirs = ['.pio', '.vscode', '.gitignore', '.git']
+            directory_structure = []
+            for item_name in os.listdir("source-code/" + directory):
+                if item_name in ignore_dirs:
+                    continue
+                item_path = directory + "/" + item_name if directory != "" else item_name
+                if os.path.isdir("source-code/" + item_path):
+                    directory_structure.append({"path": item_path, "name": item_name, "type": "dir"})
+                elif os.path.isfile("source-code/" + item_path):
+                    directory_structure.append({"path": item_path, "name": item_name, "type": "file"})
+            return directory_structure
+
+        return JsonResponse(get_directory_structure(request.GET.get('path')), safe=False)
 
 class GetSourceFileView(APIView):
     def get(self, request, format=None):
-        filename = request.GET.get('filename')
-        with open('admin-panel/versions-source/' + filename, 'r') as file:
+        filepath = request.GET.get('path')
+        with open("source-code/" + filepath, 'r') as file:
             data = file.read()
         return JsonResponse({'data': data})
     
