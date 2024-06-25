@@ -220,11 +220,11 @@ class CredentialsCheckView(APIView):
                 if user.is_caretaker():
                     #patient_ids = Patient.objects.filter(caretaker_id=user_id).values_list('pk', flat=True)
                     #rel_doctors = User.objects.filter(user_type='DR', pk__in=p)
-                    rel_doctors = Patient.objects.filter(caretaker_id=user_id)
+                    rel_doctors = Patient.objects.filter(caretaker=user_id)
                     doctor_serializer = UserIdSerializer(rel_doctors, many=True)
                     return Response({'type': 'CT', 'data': doctor_serializer.data}, status=status.HTTP_200_OK)
                 elif user.is_doctor():
-                    rel_ctkrs = Patient.objects.filter(doctor_id=user_id)
+                    rel_ctkrs = Patient.objects.filter(doctor=user_id)
                     ctkr_serializer = UserIdSerializer(rel_ctkrs, many=True)
                     return Response({'type': 'DR', 'data': ctkr_serializer.data}, status=status.HTTP_200_OK)
                 else:

@@ -52,8 +52,8 @@ class Patient(models.Model):
     is_paired = models.BooleanField(default=False)
 
     # fk
-    doctor_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_to_doctor', default=1)
-    caretaker_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_to_caretaker', default=2)
+    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_to_doctor', default=1)
+    caretaker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_to_caretaker', default=2)
 
 class Measurement(models.Model):
     def __str__(self):
