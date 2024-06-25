@@ -44,10 +44,12 @@
 
 # CURL commands to test api:
 
+https://7cnhwvk6-8000.euw.devtunnels.ms/
+
 ## Add new measurement:
 
 ```
-curl -X POST http://127.0.0.1:8000/vitalguard/measurement/ \
+curl -X POST http://127.0.0.1:8000/vitalguard/api/measurement/ \
      -H "Content-Type: application/json" \
      -d '{
            "patient": 1,

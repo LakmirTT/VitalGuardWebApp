@@ -31,6 +31,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['name', 'email', 'user_type']
 
+class UserIdSerializer(serializers.ModelSerializer):
+    """
+    will be used for adding users, type and patient are to be assigned by admin
+    """
+    class Meta():
+        model = User
+        fields = ['pk']
+
 class ThresholdSerializer(serializers.ModelSerializer):
     class Meta():
         model = Threshold

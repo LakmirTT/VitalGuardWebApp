@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 
 from .models import User, Patient, Feedback, Measurement
-from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer, UserSerializer, PatientIdSerializer
+from .serializers import PatientSerializer, MeasurementSerializer, FeedbackSerializer, UserSerializer, PatientIdSerializer, UserIdSerializer
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -151,12 +151,26 @@ class PairingRequestView(APIView):
 
         if (not name or not surname or not device_tag):
             return Response({'detail': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:    # patient exists, update
+            patient = Patient.objects.get(device_tag=device_tag)
+            serializer = PatientSerializer(patient, request.data)
 
-        serializer = PatientSerializer(data=request.data)
-        if (serializer.is_valid()):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if (serializer.is_valid()):
+                serializer.save()
+                return Response({'detail': 'Patient data updated'}, {'data': patient_serializer.data}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'detail': 'Cannot save patient.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                 
+        except Patient.DoesNotExist:    # no patient, create
+            patient = Patient(name=name, surname=surname, device_tag=device_tag, is_paired=True)
+            patient_serializer = PatientSerializer(patient)
+            #try: 
+            patient_serializer.save()
+            return Response({'detail': 'Patient added'}, {'data': patient_serializer.data}, status=status.HTTP_201_CREATED)
+            #except:
+                #return Response({'detail': 'Cannot save patient.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
     
 class FeedbackView(APIView):
     """
@@ -201,21 +215,18 @@ class CredentialsCheckView(APIView):
         
         try:
             user = self.get_object(email)
-            
-            #patient_id = user.patient.pk
+            user_id = user.pk
             if user.check_credentials(password):
-                patients = Patient.objects.filter(pk=user.patient.pk).order_by('pk')
-                patient_serializer = PatientIdSerializer(patients, many=True)
                 if user.is_caretaker():
-                    rel_doctors = User.objects.filter(user_type='DR', patient__in=patients)
-                    doctor_serializer = UserSerializer(rel_doctors, many=True)
-                    serializer_list = [doctor_serializer.data, patient_serializer.data]
-                    return Response({'type': 'CT', 'data': serializer_list}, status=status.HTTP_200_OK)
+                    #patient_ids = Patient.objects.filter(caretaker_id=user_id).values_list('pk', flat=True)
+                    #rel_doctors = User.objects.filter(user_type='DR', pk__in=p)
+                    rel_doctors = Patient.objects.filter(caretaker_id=user_id)
+                    doctor_serializer = UserIdSerializer(rel_doctors, many=True)
+                    return Response({'type': 'CT', 'data': doctor_serializer.data}, status=status.HTTP_200_OK)
                 elif user.is_doctor():
-                    rel_ctkrs = User.objects.filter(user_type='CT', patient__in=patients)
-                    ctkr_serializer = UserSerializer(rel_ctkrs, many=True)
-                    serializer_list = [ctkr_serializer.data, patient_serializer.data]
-                    return Response({'type': 'DR', 'data': serializer_list}, status=status.HTTP_200_OK)
+                    rel_ctkrs = Patient.objects.filter(doctor_id=user_id)
+                    ctkr_serializer = UserIdSerializer(rel_ctkrs, many=True)
+                    return Response({'type': 'DR', 'data': ctkr_serializer.data}, status=status.HTTP_200_OK)
                 else:
                     return Response({'type': 'NA'}, status=status.HTTP_400_BAD_REQUEST)
             else:

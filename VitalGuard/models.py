@@ -2,32 +2,9 @@ from django.db import models
 import datetime
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+import uuid
 
 # This file represents database architecture
-
-class Patient(models.Model):
-    def __str__(self):
-        return '%s %s %d y.o.' % (self.name, self.surname, self.age)
-    
-    # fields
-    name = models.CharField(max_length=25, blank=True)
-    surname = models.CharField(max_length=25, blank=True)
-    device_tag = models.CharField(max_length=50, blank=True)
-    age = models.IntegerField(default=0, blank=True)
-    description = models.CharField(max_length=200, blank=True)
-    is_paired = models.BooleanField(default=False)
-
-class Measurement(models.Model):
-    def __str__(self):
-        return '%s - %s' % (self.time_taken, self.patient)
-    
-    # fields
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    time_taken = models.DateTimeField("time taken")
-    heart_rate = models.IntegerField(default=0)
-    body_temp = models.IntegerField(default=0)
-    ox_saturation = models.IntegerField(default=0)
-    blood_pressure = models.IntegerField(default=0)
 
 class User(models.Model):
     def __str__(self):
@@ -48,7 +25,7 @@ class User(models.Model):
     username = models.CharField(max_length=25)
     email = models.CharField(max_length=50, default="user@example.com")
     password = models.CharField(max_length=25)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    #patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
 
     # enum
     class UserType(models.TextChoices):
@@ -60,6 +37,35 @@ class User(models.Model):
         choices=UserType,
         default=UserType.DOCTOR
     )
+
+
+class Patient(models.Model):
+    def __str__(self):
+        return '%s %s %d y.o.' % (self.name, self.surname, self.age)
+    
+    # fields
+    name = models.CharField(max_length=25, blank=True)
+    surname = models.CharField(max_length=25, blank=True)
+    device_tag = models.CharField(max_length=50, unique=True, default=uuid.uuid4().hex[:6].upper())
+    age = models.IntegerField(default=0, blank=True)
+    description = models.CharField(max_length=200, blank=True)
+    is_paired = models.BooleanField(default=False)
+
+    # fk
+    doctor_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_to_doctor', default=1)
+    caretaker_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='patient_to_caretaker', default=2)
+
+class Measurement(models.Model):
+    def __str__(self):
+        return '%s - %s' % (self.time_taken, self.patient)
+    
+    # fields
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    time_taken = models.DateTimeField("time taken")
+    heart_rate = models.IntegerField(default=0)
+    body_temp = models.IntegerField(default=0)
+    ox_saturation = models.IntegerField(default=0)
+    blood_pressure = models.IntegerField(default=0)
 
 
 class Threshold(models.Model):

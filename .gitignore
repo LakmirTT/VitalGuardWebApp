@@ -1,4 +1,7 @@
 __pycache__/
 *.py[cod]
-mysite/__pycache__/*
-VitalGuard/__pycache__/
+.sqlite3
+/mysite/__pycache__/
+/VitalGuard/__pycache__/
+/VitalGuard/migrations/
+/mysite/migrations/
