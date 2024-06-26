@@ -12,10 +12,16 @@ from rest_framework.views import APIView
 
 # Create your views here.
 
+from django.db import connection, DatabaseError
+from rest_framework import status
+from django.apps import apps
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
+
 import os
+import shutil
+import subprocess
 
 
 def index(request):
@@ -54,23 +60,120 @@ def process_patient_entry(request):
         return HttpResponse('entry added')
     else:
         return HttpResponse('Cannot process request')
+
+class AdminUpdaterView(APIView):
+    def get(self, request, format=None):
+        content = {}
+        return render(request, 'admin-panel/public/ap-updater.html', content)
+
+class AdminDatabaseManagerView(APIView):
+    def get(self, request, format=None):
+        content = {}
+        return render(request, 'admin-panel/public/ap-database-manager.html', content)
+
+class GetSourceDirView(APIView):
+    def get(self, request, format=None):
+        def get_directory_structure(directory):
+            ignore_dirs = ['.pio', '.vscode', '.gitignore', '.git']
+            directory_structure = []
+            for item_name in os.listdir("source-code/" + directory):
+                if item_name in ignore_dirs:
+                    continue
+                item_path = directory + "/" + item_name if directory != "" else item_name
+                if os.path.isdir("source-code/" + item_path):
+                    directory_structure.append({"path": item_path, "name": item_name, "type": "dir"})
+                elif os.path.isfile("source-code/" + item_path):
+                    directory_structure.append({"path": item_path, "name": item_name, "type": "file"})
+            return directory_structure
+
+        return JsonResponse(get_directory_structure(request.GET.get('path')), safe=False)
+
+class GetSourceFileView(APIView):
+    def get(self, request, format=None):
+        filepath = request.GET.get('path')
+        with open("source-code/" + filepath, 'r') as file:
+            data = file.read()
+        return JsonResponse({'data': data})
     
-def admin_index(request):
-    content = {}
-    return render(request, 'admin-panel/public/ap-index.html', content)
+class GetDeployedVersionView(APIView):
+    def get(self, request, format=None):
+        with open("deployed-source/deployed_version.txt", 'r') as file:
+            version = file.read()
+        return JsonResponse({'version': version})
+        
+class CreateNewVersionDirView(APIView):
+    def post(self, request, format=None):
+        dupe_dir = request.data['dupe_dir']
+        if dupe_dir != "" and dupe_dir not in os.listdir("source-code"):
+            return HttpResponse('Dupe version directory does not exist.', status=status.HTTP_400_BAD_REQUEST)
 
-def admin_updater(request):
-    content = {}
-    return render(request, 'admin-panel/public/ap-updater.html', content)
+        new_dir = request.data['new_dir']
+        if new_dir in os.listdir("source-code"):
+            return HttpResponse('A version directory with this name already exists.', status=status.HTTP_400_BAD_REQUEST)
+        if dupe_dir != "":
+            shutil.copytree(f"source-code/{dupe_dir}", f"source-code/{new_dir}")
+        else:
+            os.system(f"mkdir .\\source-code\\{new_dir}")
+        return HttpResponse('New version directory created succesfully.', status=status.HTTP_200_OK)
+    
+class DeployVersionView(APIView):
+    def get(self, request, format=None):
+        version = request.GET.get('version')
+        if not os.path.isfile(f"source-code/{version}/platformio.ini"):
+            return HttpResponse('Invalid PlatformIO project.', status=status.HTTP_400_BAD_REQUEST)
+        result = self.compile_platformio_project(f"source-code\\{version}")
+        if not result['success']:
+            return HttpResponse(result['error'], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        shutil.copyfile(result['bin_file'], "deployed-source/firmware.bin")
+        with open("deployed-source/deployed_version.txt", 'w') as file:
+            file.write(version)
+        return HttpResponse('Version deployed succesfully.', status=status.HTTP_200_OK)
 
-def get_source_filenames(request):
-    return JsonResponse({'filenames': os.listdir('admin-panel/versions-source')})
+    def compile_platformio_project(self, project_dir):
+        try:
+            print('Compiling PlatformIO project:', project_dir)
+            if not os.path.exists(os.path.join(project_dir, 'platformio.ini')):
+                return {'success': False, 'error': 'Invalid PlatformIO project'}
 
-def get_source_file(request):
-    filename = request.GET.get('filename')
-    with open('admin-panel/versions-source/' + filename, 'r') as file:
-        data = file.read()
-    return JsonResponse({'data': data})
+            result = subprocess.run(['platformio', 'run'], cwd=project_dir, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                return {'success': False, 'error': result.stderr}
+
+            bin_file = os.path.join(project_dir, '.pio', 'build', 'ttgo-lora32-v1', 'firmware.bin')
+            print('Compiled .bin file:', bin_file)
+
+            if not bin_file:
+                return {'success': False, 'error': 'Compiled .bin file not found'}
+
+            return {'success': True, 'bin_file': bin_file}
+
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    
+class CreateNewFileView(APIView):
+    def get(self, request, format=None):
+        try:
+            filepath = request.GET.get('path')
+            print(filepath)
+            os.makedirs(os.path.dirname("source-code/" + filepath), exist_ok=True)
+            with open("source-code/" + filepath, 'w') as file:
+                file.write("")
+            return HttpResponse('New file created successfully.', status=status.HTTP_200_OK)
+        except Exception as e:
+            return HttpResponse('An error occurred while creating file', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SaveSourceFileView(APIView):
+    def post(self, request, format=None):
+        try:
+            filepath = request.data['path']
+            data = request.data['data']
+            with open("source-code/" + filepath, 'w') as file:
+                file.write(data)
+            return HttpResponse('File content updated successfully.', status=status.HTTP_200_OK)
+        except Exception as e:
+            return HttpResponse('An error occurred while updating file', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class PatientList(APIView):
     """
@@ -127,17 +230,6 @@ class MeasurementView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class MeasurementListView(APIView):
-    """
-    Get all measurements for all patients
-    """
-    def get(self, request, format=None):
-        measurements = Measurement.objects.all()
-        serializer = MeasurementSerializer(measurements, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 
 class PairingRequestView(APIView):
     """
@@ -228,9 +320,68 @@ class CredentialsCheckView(APIView):
                     ctkr_serializer = UserIdSerializer(rel_ctkrs, many=True)
                     return Response({'type': 'DR', 'data': ctkr_serializer.data}, status=status.HTTP_200_OK)
                 else:
-                    return Response({'type': 'NA'}, status=status.HTTP_400_BAD_REQUEST)
+                    return HttpResponse('NA')
             else:
                 return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_403_FORBIDDEN)
 
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class SchemaView(APIView):
+    def get(self, request, format=None):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = cursor.fetchall()
+                schema = {}
+
+                for table in tables:
+                    table_name = table[0]
+                    cursor.execute(f"PRAGMA table_info({table_name})")
+                    fields = cursor.fetchall()
+
+                    cursor.execute(f"PRAGMA foreign_key_list({table_name})")
+                    foreign_keys = cursor.fetchall()
+
+                    if table_name not in schema:
+                        schema[table_name] = []
+
+                    for field in fields:
+                        field_name = field[1]
+                        field_type = field[2]
+                        if field[5]: is_pk = True
+                        else: is_pk = False
+                        related_model = None
+                        related_field = None
+                        for fk in foreign_keys:
+                            if fk[3] == field_name:
+                                related_model = fk[2]
+                                related_field = fk[4]
+
+                        schema[table_name].append({
+                            'name': field_name,
+                            'type': field_type,
+                            'pk': is_pk,
+                            'related_field': related_field,
+                            'related_model': related_model
+                        })
+
+                return JsonResponse(schema)
+
+        except DatabaseError:
+            return Response({'error': 'Failed to retrieve schema details.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+class ExecuteQueryView(APIView):
+    def post(self, request, format=None):
+        query = request.data['query']
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                results = cursor.fetchall()
+                fields = [desc[0] for desc in cursor.description]
+
+            return Response({'fields': fields, 'results': results})
+
+        except DatabaseError:
+            return Response({'error': 'Invalid query.'}, status=status.HTTP_400_BAD_REQUEST)

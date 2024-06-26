@@ -3,36 +3,99 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
+    <title>Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js" type="text/javascript" charset="utf-8"></script>
     <style>
-      body {
-        background-color: #a9d5e0;
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
-      .main-content {
-        height: 100vh;
-      }
-      .nav-link.active {
-        background-color: #d1e7e5;
-      }
-      .username {
-        margin-right: 1rem;
-      }
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* Prevent the body from scrolling */
+}
+body {
+    background-color: #a9d5e0;
+    display: flex;
+    flex-direction: column;
+}
+.main-content {
+    flex: 1; /* Make it take remaining space after the navbar */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent the main-content from expanding */
+}
+.file-tree-container {
+    height: 100%; /* Make sure it takes the full height of the main-content */
+    overflow: hidden; /* Prevent overflow */
+}
+.file-tree {
+    height: 100%;
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.file-tree ul {
+    list-style-type: none;
+    padding-left: 7px;
+    margin: 0;
+    overflow-x: auto;
+}
+
+.file-tree li {
+    margin: 5px 0;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.file-tree .folder::before {
+    content: "📁 ";
+    margin-right: 5px;
+}
+
+.file-tree .file::before {
+    content: "📄 ";
+    margin-right: 5px;
+}
+
+.file-tree .nested {
+    display: none;
+}
+
+.file-tree .folder .nested.active {
+    display: block;
+}
+
+.caret {
+    cursor: pointer;
+    user-select: none;
+    display: inline-block;
+    width: 83%;
+}
+
+.caret::before {
+    content: "\f0da"; /* Font Awesome icon for right caret */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    display: inline-block;
+    margin-right: 6px;
+    transition: transform 0.3s; /* Smooth transition */
+}
+
+.caret.caret-down::before {
+    content: "\f0d7"; /* Font Awesome icon for down caret */
+}
     </style>
   </head>
   <body>
-    <nav class="navbar navbar-expand-md bg-light">
+    <nav class="navbar navbar-expand-md bg-light border border-info-subtle border-start-0 border-end-0 border-top-0 shadow-sm">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">
-          <img class="d-inline-block" width="50" height="55" src="/img/logo.png" alt="Brand Logo">
+          <img class="d-inline-block" width="50" height="55" src="/admin-panel/img/logo.png" alt="Brand Logo">
         </a>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="/vitalguard/admin/index">Device list</a>
+              <a class="nav-link" href="/vitalguard/admin/database_manager">Database Manager</a>
             </li>
             <li class="nav-item">
               <a class="nav-link active" href="/vitalguard/admin/updater">Updater</a>
@@ -44,54 +107,268 @@
       </div>
     </nav>
     
-    <div class="d-flex main-content">
-        <div class="container-fluid text-center">
-            <div class="row">
-                <div class="col-2 me-5 container-fluid bg-light border border-top-0 border-info-subtle shadow-sm">
-                    <div id="source-dir" class="btn-group-vertical container-fluid gap-1" role="group" aria-label="Version directory">
+    <div class="main-content">
+        
+            <div class="row g-0" style="flex-grow: 1; max-height: 90%;">
+                <div class="h-100 col-2 file-tree-container bg-light border border-top-0 border-end-0 border-info-subtle shadow-sm">
+                    <div class="file-tree">
+                        
                     </div>
                 </div>
-                <div class="col">
-                    <div class="contrainer text-center">
-                        <div class="row">
-                            <div class="col pt-3">
-                                <div id="editor" style="height: 500px; width: 100%;">int main() { return 0; }</div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <button class="btn btn-primary mt-2">Update</button>
-                            </div>
-                        </div>
+                <div class="col ms-2 border border-top-0 border-start-0 border-info-subtle shadow-sm">
+                  <div class="row" style="height: 4%;">
+                    <div class="col" style="background-color: #dadada;">
+                      <h6 class="text-start" id="current_file_path"></h5>
                     </div>
+                  </div>
+                  <div class="row" style="height: 96%;">
+                      <div id="editor" style="height: 100%; width: 100%;"></div>
+                  </div>
                 </div>
             </div>
-        </div>
+            <div class="row" style="height: 10%; background-color: #e0e0e0;">
+              <div class="col-2 h-100 ps-4 mt-3">
+                <label for="version_selector" class="me-2">Version:</label>
+                <select name="version_selector" class="" id="version_selector" style="width: 145px; text-align: center;">
+                </select>
+              </div>
+              <div class="col h-100 mt-3">
+                <div class="row">
+                  <div class="col">
+                    <button onclick="newVersion()" class="btn btn-primary btn-sm me-2">New Version</button>
+                    <button onclick="newFile()" class="btn btn-primary btn-sm me-2">New File</button>
+                    <button onclick="saveFile()" class="btn btn-secondary btn-sm me-2">Save</button>
+                    <button onclick="deployVersion()" class="btn btn-danger btn-sm">Deploy</button>
+                  </div>
+                  <div class="col-3">
+                    <span>Currently deployed: </span>
+                    <span class="ms-2" id="deployed_version" style="background-color: #a9d5e0;"> </span>
+                  </div>
+                </div>
+              </div>
+            </div>
     </div>
+  </body>
     <script>
-      async function loadFiles() {
+      const versionSelector = document.getElementById('version_selector');
+      const fileTree = document.querySelector('.file-tree');
+    
+      async function dirBuilder(dir) {
         try {
-          const response = await fetch('http://localhost:8000/vitalguard/admin/get_source_filenames/');
-          const jsondata = await response.json(); 
-          const fileNames = jsondata.filenames;
-          fileNames.sort((a, b) => b.localeCompare(a));
-          fileNames.forEach(name => {
-            addButton(name);
+          const response = await fetch(`/vitalguard/api/device/get_source_dir?path=${encodeURIComponent(dir)}`);
+          const data = await response.json();
+
+          const dirElement = document.createElement('ul');
+
+          data.forEach(item => {
+            const li = document.createElement('li');
+            if (item.type === 'dir') {
+              li.classList.add('folder');
+
+              const span = document.createElement('span');
+              span.classList.add('caret');
+              span.textContent = item.name;
+              span.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    this.classList.toggle('caret-down');
+                    const nestedUl = this.nextElementSibling;
+                    nestedUl.classList.toggle('active');
+              });
+
+              li.appendChild(span);
+
+              const ul = document.createElement('ul');
+              ul.classList.add('nested');
+              dirBuilder(item.path).then(nestedDir => {
+                ul.appendChild(nestedDir);
+              });
+
+              li.appendChild(ul);
+            } else {
+              li.classList.add('file');
+              li.innerHTML = item.name;
+              li.addEventListener('click', function(event) {
+                if (document.getElementById('current_file_path').textContent !== '') {
+                  const answer = confirm('Changing to another file will discard any unsaved changes in the current one. Do you want to continue?');
+                  if (!answer) {
+                    return;
+                  }
+                }
+                event.stopPropagation();
+                fetchFileContent(item.path);
+                document.getElementById('current_file_path').textContent = item.path.split('/').slice(1).join('/');
+              });
+            }
+            dirElement.appendChild(li);
           });
+          return dirElement;
+
         } catch (error) {
-        console.error('Error fetching files:', error);
+          console.error('Error fetching files:', error);
         }
-      } 
-      document.addEventListener('DOMContentLoaded', loadFiles);
+      }
+      var prevSelection;
+      document.addEventListener('DOMContentLoaded', async function() {
+        const deployedVersion = await fetchDeployedVersion();
+        prevSelection = deployedVersion;
+            try {
+              fetch('/vitalguard/api/device/get_source_dir?path=')
+                .then(response => response.json())
+                .then(data => {
+                  data.forEach(version => {
+                    const option = document.createElement('option');
+                    option.value = version.name;
+                    option.textContent = version.name;
+                    if (version.name === deployedVersion) {
+                      option.selected = true;
+                    }
+                    versionSelector.appendChild(option);
+                  });
+                });
+            } catch (error) {
+              console.error('Error:', error);
+            }
+        });
+
+      versionSelector.addEventListener('change', function() {
+        const answer = confirm('Changing to another version will discard any unsaved changes in the current file. Do you want to continue?');
+        if (!answer) {
+          versionSelector.value = prevSelection;
+          return;
+        }
+
+        prevSelection = versionSelector.value;
+
+        
+        fileTree.innerHTML = '';
+        dirBuilder(versionSelector.value).then(dir => {
+          fileTree.appendChild(dir);
+        });
+        editor.setValue('', -1);
+        document.getElementById('current_file_path').textContent = '';
+      });
       
       var editor = ace.edit("editor");
       editor.setTheme("ace/theme/textmate");
       editor.session.setMode("ace/mode/c_cpp");
       editor.setShowPrintMargin(false);
 
+      async function newVersion(){
+        const regex = /^v\d+\.\d+\.\d+$/;
+
+        dupe_dir = prompt("Would you like to duplicate a version directory?\nPlease enter the name of the version you want to duplicate or leave empty to create an empty directory:");
+        if (dupe_dir === null) {
+          return;
+        }
+        if (!regex.test(dupe_dir) && dupe_dir !== '') {
+          alert("Invalid dupe directory name.");
+          return;
+        }
+
+        new_dir = prompt("Please enter the name of the new version directory:");
+        if (new_dir === null) {
+          return;
+        }
+        if (!regex.test(new_dir)) {
+          alert("Invalid format for new version directory. Please use the format vX.X.X");
+          return;
+        }
+        
+        const response = await fetch('/vitalguard/api/device/create_new_version_dir/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            new_dir: new_dir,
+            dupe_dir: dupe_dir
+          })
+        });
+        alert(await response.text());
+        if (response.ok) {
+          const option = document.createElement('option');
+          option.value = new_dir;
+          option.textContent = new_dir;
+          versionSelector.appendChild(option);
+          versionSelector.value = new_dir;
+          fileTree.innerHTML = '';
+          dirBuilder(new_dir).then(dir => {
+            fileTree.appendChild(dir);
+          });
+          editor.setValue('', -1);
+          document.getElementById('current_file_path').textContent = '';
+        }
+      }
+
+      async function newFile() {
+        const path = prompt("Please enter the path of the new file.\nExamples:\n[filename].[ext] \t New file in base dir.\n[folder]/[folder]/[filename].[ext] \t New file in (new) folder(s).\n[folder1]/[folder2]/ \t New folder(s).");
+        if (path === null) {
+          return;
+        }
+        if (path === '') {
+          alert('Invalid file name.');
+          return;
+        }
+        const response = await fetch(`/vitalguard/api/device/create_new_file?path=${versionSelector.value}/${path}`);
+        alert(await response.text());
+      }
+
+      async function saveFile() {
+        const path = document.getElementById('current_file_path').textContent;
+        if (path === '') {
+          alert('No file selected.');
+          return;
+        }
+        if (!confirm('Are you sure you want to save the changes to the current file?')) {
+          return;
+        }
+        const content = editor.getValue();
+        const response = await fetch(`/vitalguard/api/device/save_source_file/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            path: versionSelector.value + '/' + path,
+            data: content
+          })
+        });
+        alert(await response.text());
+      }
+
+      async function deployVersion() {
+        if (versionSelector.value === document.getElementById('deployed_version').textContent) {
+          alert('Version already deployed.');
+          return;
+        }
+        if (prompt(`Are you sure you want to deploy version ${versionSelector.value}?\nType CONFIRM to proceed.\n\nWARNING: any unsaved changes to the current file will be discarded before deploying!`) !== 'CONFIRM') {
+          return;
+        }
+        alert('Deploying version... (This may take a while)');
+        const response = await fetch(`/vitalguard/api/device/deploy_version?version=${versionSelector.value}`);
+        alert(await response.text());
+        document.getElementById('deployed-version').textContent = fetchDeployedVersion();
+      }
+
+      async function fetchDeployedVersion() {
+        try {
+          const response = await fetch('/vitalguard/api/device/get_deployed_version');
+          const jsondata = await response.json();
+          const deployedVersion = jsondata.version;
+          document.getElementById('deployed_version').textContent = deployedVersion;
+          fileTree.innerHTML = '';
+          dirBuilder(deployedVersion).then(dir => {
+            fileTree.appendChild(dir);
+          });
+          return deployedVersion;
+        } catch (error) {
+          console.error('Error fetching deployed version:', error);
+        }
+      }
+
       async function fetchFileContent(fileName) {
         try {
-          const response = await fetch(`http://localhost:8000/vitalguard/admin/get_source_file?filename=${encodeURIComponent(fileName)}`);
+          const response = await fetch(`/vitalguard/api/device/get_source_file?path=${encodeURIComponent(fileName)}`);
           const jsondata = await response.json();
           const fileContent = jsondata.data;
           editor.setValue(fileContent, -1);
@@ -100,19 +377,5 @@
           console.error('Error fetching file content:', error);
         }
       }
-
-      function addButton(label) {
-        var newButton = document.createElement("button");
-        newButton.classList.add("btn", "btn-outline-info");
-        newButton.textContent = label;
-
-        newButton.addEventListener('click', () => {
-          fetchFileContent(label);
-        });
-
-        var buttonGroup = document.querySelector("#source-dir");
-        buttonGroup.appendChild(newButton);
-      }
     </script>
-  </body>
 </html>
