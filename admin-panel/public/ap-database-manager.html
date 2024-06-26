@@ -102,8 +102,8 @@
                 id: tableId,
                 label: tableLabel,
                 color: {
-                    background: brightColors[index % brightColors.length], // background color
-                    border: '#000000' // border color
+                    background: brightColors[index % brightColors.length],
+                    border: '#000000'
                 },
                 shape: 'box',
                 font: { multi: 'html' },
@@ -204,7 +204,6 @@
           const cookies = document.cookie.split(';');
           for (let i = 0; i < cookies.length; i++) {
               const cookie = cookies[i].trim();
-              // Does this cookie string begin with the name we want?
               if (cookie.substring(0, name.length + 1) === (name + '=')) {
                   cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                   break;

@@ -41,6 +41,11 @@ urlpatterns = [
 
     path('api/device/get_source_dir/', views.GetSourceDirView.as_view(), name='get_source_filenames'),
     path('api/device/get_source_file/', views.GetSourceFileView.as_view(), name='get_source_file'),
+    path('api/device/get_deployed_version/', views.GetDeployedVersionView.as_view(), name='get_deployed_version'),
+    path("api/device/create_new_version_dir/", views.CreateNewVersionDirView.as_view(), name="create_new_version_dir"),
+    path('api/device/create_new_file/', views.CreateNewFileView.as_view(), name='create_new_file'),
+    path('api/device/save_source_file/', views.SaveSourceFileView.as_view(), name='save_source_file'),
+    path('api/device/deploy_version/', views.DeployVersionView.as_view(), name='deploy_version'),
 
     path('api/execute_query/', views.ExecuteQueryView.as_view(), name='execute_query'),
 ]

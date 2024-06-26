@@ -18,8 +18,10 @@ from django.apps import apps
 from django.http import HttpResponse, JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
+
 import os
-import os
+import shutil
+import subprocess
 
 
 def index(request):
@@ -92,6 +94,86 @@ class GetSourceFileView(APIView):
         with open("source-code/" + filepath, 'r') as file:
             data = file.read()
         return JsonResponse({'data': data})
+    
+class GetDeployedVersionView(APIView):
+    def get(self, request, format=None):
+        with open("deployed-source/deployed_version.txt", 'r') as file:
+            version = file.read()
+        return JsonResponse({'version': version})
+        
+class CreateNewVersionDirView(APIView):
+    def post(self, request, format=None):
+        dupe_dir = request.data['dupe_dir']
+        if dupe_dir != "" and dupe_dir not in os.listdir("source-code"):
+            return HttpResponse('Dupe version directory does not exist.', status=status.HTTP_400_BAD_REQUEST)
+
+        new_dir = request.data['new_dir']
+        if new_dir in os.listdir("source-code"):
+            return HttpResponse('A version directory with this name already exists.', status=status.HTTP_400_BAD_REQUEST)
+        if dupe_dir != "":
+            shutil.copytree(f"source-code/{dupe_dir}", f"source-code/{new_dir}")
+        else:
+            os.system(f"mkdir .\\source-code\\{new_dir}")
+        return HttpResponse('New version directory created succesfully.', status=status.HTTP_200_OK)
+    
+class DeployVersionView(APIView):
+    def get(self, request, format=None):
+        version = request.GET.get('version')
+        if not os.path.isfile(f"source-code/{version}/platformio.ini"):
+            return HttpResponse('Invalid PlatformIO project.', status=status.HTTP_400_BAD_REQUEST)
+        result = self.compile_platformio_project(f"source-code\\{version}")
+        if not result['success']:
+            return HttpResponse(result['error'], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        shutil.copyfile(result['bin_file'], "deployed-source/firmware.bin")
+        with open("deployed-source/deployed_version.txt", 'w') as file:
+            file.write(version)
+        return HttpResponse('Version deployed succesfully.', status=status.HTTP_200_OK)
+
+    def compile_platformio_project(self, project_dir):
+        try:
+            print('Compiling PlatformIO project:', project_dir)
+            if not os.path.exists(os.path.join(project_dir, 'platformio.ini')):
+                return {'success': False, 'error': 'Invalid PlatformIO project'}
+
+            result = subprocess.run(['platformio', 'run'], cwd=project_dir, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                return {'success': False, 'error': result.stderr}
+
+            bin_file = os.path.join(project_dir, '.pio', 'build', 'ttgo-lora32-v1', 'firmware.bin')
+            print('Compiled .bin file:', bin_file)
+
+            if not bin_file:
+                return {'success': False, 'error': 'Compiled .bin file not found'}
+
+            return {'success': True, 'bin_file': bin_file}
+
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    
+class CreateNewFileView(APIView):
+    def get(self, request, format=None):
+        try:
+            filepath = request.GET.get('path')
+            print(filepath)
+            os.makedirs(os.path.dirname("source-code/" + filepath), exist_ok=True)
+            with open("source-code/" + filepath, 'w') as file:
+                file.write("")
+            return HttpResponse('New file created successfully.', status=status.HTTP_200_OK)
+        except Exception as e:
+            return HttpResponse('An error occurred while creating file', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SaveSourceFileView(APIView):
+    def post(self, request, format=None):
+        try:
+            filepath = request.data['path']
+            data = request.data['data']
+            with open("source-code/" + filepath, 'w') as file:
+                file.write(data)
+            return HttpResponse('File content updated successfully.', status=status.HTTP_200_OK)
+        except Exception as e:
+            return HttpResponse('An error occurred while updating file', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 class PatientList(APIView):
     """

@@ -115,26 +115,44 @@ body {
                         
                     </div>
                 </div>
-                <div class="col border border-top-0 border-start-0 border-info-subtle shadow-sm">
-                    <div id="editor" style="height: 100%; width: 100%;">int main() { return 0; }</div>
+                <div class="col ms-2 border border-top-0 border-start-0 border-info-subtle shadow-sm">
+                  <div class="row" style="height: 4%;">
+                    <div class="col" style="background-color: #dadada;">
+                      <h6 class="text-start" id="current_file_path"></h5>
+                    </div>
+                  </div>
+                  <div class="row" style="height: 96%;">
+                      <div id="editor" style="height: 100%; width: 100%;"></div>
+                  </div>
                 </div>
             </div>
             <div class="row" style="height: 10%; background-color: #e0e0e0;">
-              <div class="col-2 h-100 ps-4 me-4 mt-3">
+              <div class="col-2 h-100 ps-4 mt-3">
                 <label for="version_selector" class="me-2">Version:</label>
-                <select name="version_selector" class="me-2" id="version_selector" style="width: 145px; text-align: center;">
-                  <option disabled selected value>-select a version-</option>
+                <select name="version_selector" class="" id="version_selector" style="width: 145px; text-align: center;">
                 </select>
               </div>
-              <div class="col h-100 ps-3 ms-4 mt-3">
-                <button class="btn btn-primary btn-sm me-2">button</button>
-                <button class="btn btn-secondary btn-sm me-2">button</button>
-                <button class="btn btn-danger btn-sm">button</button>
+              <div class="col h-100 mt-3">
+                <div class="row">
+                  <div class="col">
+                    <button onclick="newVersion()" class="btn btn-primary btn-sm me-2">New Version</button>
+                    <button onclick="newFile()" class="btn btn-primary btn-sm me-2">New File</button>
+                    <button onclick="saveFile()" class="btn btn-secondary btn-sm me-2">Save</button>
+                    <button onclick="deployVersion()" class="btn btn-danger btn-sm">Deploy</button>
+                  </div>
+                  <div class="col-3">
+                    <span>Currently deployed: </span>
+                    <span class="ms-2" id="deployed_version" style="background-color: #a9d5e0;"> </span>
+                  </div>
+                </div>
               </div>
             </div>
     </div>
   </body>
     <script>
+      const versionSelector = document.getElementById('version_selector');
+      const fileTree = document.querySelector('.file-tree');
+    
       async function dirBuilder(dir) {
         try {
           const response = await fetch(`/vitalguard/api/device/get_source_dir?path=${encodeURIComponent(dir)}`);
@@ -170,8 +188,15 @@ body {
               li.classList.add('file');
               li.innerHTML = item.name;
               li.addEventListener('click', function(event) {
+                if (document.getElementById('current_file_path').textContent !== '') {
+                  const answer = confirm('Changing to another file will discard any unsaved changes in the current one. Do you want to continue?');
+                  if (!answer) {
+                    return;
+                  }
+                }
                 event.stopPropagation();
                 fetchFileContent(item.path);
+                document.getElementById('current_file_path').textContent = item.path.split('/').slice(1).join('/');
               });
             }
             dirElement.appendChild(li);
@@ -182,11 +207,11 @@ body {
           console.error('Error fetching files:', error);
         }
       }
-
-      document.addEventListener('DOMContentLoaded', function() {
+      var prevSelection;
+      document.addEventListener('DOMContentLoaded', async function() {
+        const deployedVersion = await fetchDeployedVersion();
+        prevSelection = deployedVersion;
             try {
-              const versionSelector = document.getElementById('version_selector');
-
               fetch('/vitalguard/api/device/get_source_dir?path=')
                 .then(response => response.json())
                 .then(data => {
@@ -194,27 +219,152 @@ body {
                     const option = document.createElement('option');
                     option.value = version.name;
                     option.textContent = version.name;
+                    if (version.name === deployedVersion) {
+                      option.selected = true;
+                    }
                     versionSelector.appendChild(option);
                   });
                 });
             } catch (error) {
-              console.error('Error fetching versions:', error);
+              console.error('Error:', error);
             }
         });
 
-      const versionSelector = document.getElementById('version_selector');
       versionSelector.addEventListener('change', function() {
-        const fileTree = document.querySelector('.file-tree');
+        const answer = confirm('Changing to another version will discard any unsaved changes in the current file. Do you want to continue?');
+        if (!answer) {
+          versionSelector.value = prevSelection;
+          return;
+        }
+
+        prevSelection = versionSelector.value;
+
+        
         fileTree.innerHTML = '';
         dirBuilder(versionSelector.value).then(dir => {
           fileTree.appendChild(dir);
         });
+        editor.setValue('', -1);
+        document.getElementById('current_file_path').textContent = '';
       });
       
       var editor = ace.edit("editor");
       editor.setTheme("ace/theme/textmate");
       editor.session.setMode("ace/mode/c_cpp");
       editor.setShowPrintMargin(false);
+
+      async function newVersion(){
+        const regex = /^v\d+\.\d+\.\d+$/;
+
+        dupe_dir = prompt("Would you like to duplicate a version directory?\nPlease enter the name of the version you want to duplicate or leave empty to create an empty directory:");
+        if (dupe_dir === null) {
+          return;
+        }
+        if (!regex.test(dupe_dir) && dupe_dir !== '') {
+          alert("Invalid dupe directory name.");
+          return;
+        }
+
+        new_dir = prompt("Please enter the name of the new version directory:");
+        if (new_dir === null) {
+          return;
+        }
+        if (!regex.test(new_dir)) {
+          alert("Invalid format for new version directory. Please use the format vX.X.X");
+          return;
+        }
+        
+        const response = await fetch('/vitalguard/api/device/create_new_version_dir/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            new_dir: new_dir,
+            dupe_dir: dupe_dir
+          })
+        });
+        alert(await response.text());
+        if (response.ok) {
+          const option = document.createElement('option');
+          option.value = new_dir;
+          option.textContent = new_dir;
+          versionSelector.appendChild(option);
+          versionSelector.value = new_dir;
+          fileTree.innerHTML = '';
+          dirBuilder(new_dir).then(dir => {
+            fileTree.appendChild(dir);
+          });
+          editor.setValue('', -1);
+          document.getElementById('current_file_path').textContent = '';
+        }
+      }
+
+      async function newFile() {
+        const path = prompt("Please enter the path of the new file.\nExamples:\n[filename].[ext] \t New file in base dir.\n[folder]/[folder]/[filename].[ext] \t New file in (new) folder(s).\n[folder1]/[folder2]/ \t New folder(s).");
+        if (path === null) {
+          return;
+        }
+        if (path === '') {
+          alert('Invalid file name.');
+          return;
+        }
+        const response = await fetch(`/vitalguard/api/device/create_new_file?path=${versionSelector.value}/${path}`);
+        alert(await response.text());
+      }
+
+      async function saveFile() {
+        const path = document.getElementById('current_file_path').textContent;
+        if (path === '') {
+          alert('No file selected.');
+          return;
+        }
+        if (!confirm('Are you sure you want to save the changes to the current file?')) {
+          return;
+        }
+        const content = editor.getValue();
+        const response = await fetch(`/vitalguard/api/device/save_source_file/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            path: versionSelector.value + '/' + path,
+            data: content
+          })
+        });
+        alert(await response.text());
+      }
+
+      async function deployVersion() {
+        if (versionSelector.value === document.getElementById('deployed_version').textContent) {
+          alert('Version already deployed.');
+          return;
+        }
+        if (prompt(`Are you sure you want to deploy version ${versionSelector.value}?\nType CONFIRM to proceed.\n\nWARNING: any unsaved changes to the current file will be discarded before deploying!`) !== 'CONFIRM') {
+          return;
+        }
+        alert('Deploying version... (This may take a while)');
+        const response = await fetch(`/vitalguard/api/device/deploy_version?version=${versionSelector.value}`);
+        alert(await response.text());
+        document.getElementById('deployed-version').textContent = fetchDeployedVersion();
+      }
+
+      async function fetchDeployedVersion() {
+        try {
+          const response = await fetch('/vitalguard/api/device/get_deployed_version');
+          const jsondata = await response.json();
+          const deployedVersion = jsondata.version;
+          document.getElementById('deployed_version').textContent = deployedVersion;
+          fileTree.innerHTML = '';
+          dirBuilder(deployedVersion).then(dir => {
+            fileTree.appendChild(dir);
+          });
+          return deployedVersion;
+        } catch (error) {
+          console.error('Error fetching deployed version:', error);
+        }
+      }
 
       async function fetchFileContent(fileName) {
         try {
