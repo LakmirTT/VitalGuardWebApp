@@ -128,7 +128,7 @@ class CreateNewVersionDirView(APIView):
 class DeployVersionView(APIView):
     def get(self, request, format=None):
         version = request.GET.get('version')
-        if not os.path.exists(f"source-code/{version}/platformio.ini"):
+        if not os.path.exists(os.path.join("source-code", version, 'platformio.ini')):
             return HttpResponse('Invalid PlatformIO project.', status=status.HTTP_400_BAD_REQUEST)
         result = self.compile_platformio_project(f"source-code\\{version}")
         if not result['success']:
