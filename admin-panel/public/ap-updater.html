@@ -84,6 +84,9 @@ body {
 .caret.caret-down::before {
     content: "\f0d7"; /* Font Awesome icon for down caret */
 }
+.nav-link.active {
+        background-color: #d1e7e5;
+      }
     </style>
   </head>
   <body>
@@ -102,7 +105,6 @@ body {
               <a class="nav-link active" href="/vitalguard/admin/updater">Updater</a>
             </li>
           </ul>
-          <span class="navbar-text username">Username</span>
           <button class="btn btn-outline-primary" type="button">Logout</button>
         </div>
       </div>
@@ -156,7 +158,7 @@ body {
     
       async function dirBuilder(dir) {
         try {
-          const response = await fetch(`/vitalguard/api/device/get_source_dir?path=${encodeURIComponent(dir)}`);
+          const response = await fetch(`/vitalguard/api/device/get_source_dir/?path=${encodeURIComponent(dir)}`);
           const data = await response.json();
 
           const dirElement = document.createElement('ul');
@@ -213,7 +215,7 @@ body {
         const deployedVersion = await fetchDeployedVersion();
         prevSelection = deployedVersion;
             try {
-              fetch('/vitalguard/api/device/get_source_dir?path=')
+              fetch('/vitalguard/api/device/get_source_dir/?path=')
                 .then(response => response.json())
                 .then(data => {
                   data.forEach(version => {
@@ -310,7 +312,7 @@ body {
           alert('Invalid file name.');
           return;
         }
-        const response = await fetch(`/vitalguard/api/device/create_new_file?path=${versionSelector.value}/${path}`);
+        const response = await fetch(`/vitalguard/api/device/create_new_file/?path=${versionSelector.value}/${path}`);
         alert(await response.text());
       }
 
@@ -346,7 +348,7 @@ body {
           return;
         }
         alert('Deploying version... (This may take a while)');
-        const response = await fetch(`/vitalguard/api/device/deploy_version?version=${versionSelector.value}`);
+        const response = await fetch(`/vitalguard/api/device/deploy_version/?version=${versionSelector.value}`);
         alert(await response.text());
         document.getElementById('deployed-version').textContent = fetchDeployedVersion();
       }
@@ -369,7 +371,7 @@ body {
 
       async function fetchFileContent(fileName) {
         try {
-          const response = await fetch(`/vitalguard/api/device/get_source_file?path=${encodeURIComponent(fileName)}`);
+          const response = await fetch(`/vitalguard/api/device/get_source_file/?path=${encodeURIComponent(fileName)}`);
           const jsondata = await response.json();
           const fileContent = jsondata.data;
           editor.setValue(fileContent, -1);
