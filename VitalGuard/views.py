@@ -73,7 +73,12 @@ class AdminDatabaseManagerView(APIView):
     
 class DownloadFirmwareView(APIView):
     def get(self, request, format=None):
-        with open("deployed-source/firmware.bin", 'rb') as file:
+        bin_files = [f for f in os.listdir("deployed-source") if f.endswith(".bin")]
+        bin_files.sort()
+
+        latest_bin_file = bin_files[-1]
+
+        with open(os.path.join("deployed-source", latest_bin_file), 'rb') as file:
             data = file.read()
         response = HttpResponse(data, content_type='application/octet-stream')
         response['Content-Disposition'] = 'attachment; filename="firmware.bin"'
@@ -132,7 +137,19 @@ class DeployVersionView(APIView):
         result = self.compile_platformio_project(f"source-code\\{version}")
         if not result['success']:
             return HttpResponse(result['error'], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        shutil.copyfile(result['bin_file'], "deployed-source/firmware.bin")
+        bin_files = [f for f in os.listdir("deployed-source") if f.endswith(".bin")]
+
+        bin_files.sort()
+
+        latest_bin_file = bin_files[-1]
+
+        file_name = os.path.splitext(latest_bin_file)[0]
+
+        new_file_name = str(int(file_name) + 1)
+
+        new_bin_file = new_file_name + ".bin"
+
+        shutil.copyfile(result['bin_file'], os.path.join("deployed-source", new_bin_file))
         with open("deployed-source/deployed_version.txt", 'w') as file:
             file.write(version)
         return HttpResponse('Version deployed succesfully.', status=status.HTTP_200_OK)
