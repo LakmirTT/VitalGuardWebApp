@@ -85,7 +85,11 @@ curl -X POST http://127.0.0.1:8000/vitalguard/api/device/pair_req/ \
 ## Get patient measurements (no token auth so far):
 
 ```
-curl -X GET http://127.0.0.1:8000/vitalguard/api/users/get_measurements/ -H "Content-Type: application/json"
+curl -X GET http://127.0.0.1:8000/vitalguard/api/users/get_measurements/ \
+  -H "Content-Type: application/json" \
+  -d '{
+        "patient_id": "1"
+      }'
 ```
 
 ## Create new user:

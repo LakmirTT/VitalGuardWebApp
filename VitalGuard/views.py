@@ -253,6 +253,20 @@ class MeasurementView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    """
+    Fetch existing for patient
+    """
+    def get(self, request, format=None):
+        patient_id = request.data['patient_id']
+        
+        if (Patient.objects.filter(pk=patient_id).exists()):
+            measurements = Measurement.objects.filter(patient=patient_id)
+            serializer = MeasurementSerializer(measurements, many=True)
+            return Response({'detail': 'measurements fetched', 'data': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Wrong patient id!'}, status=status.HTTP_404_NOT_FOUND)
+
+        
 
 class PairingRequestView(APIView):
     """
