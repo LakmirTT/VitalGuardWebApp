@@ -356,7 +356,7 @@ body {
         alert('Deploying version... (This may take a while)');
         const response = await fetch(`/vitalguard/api/device/deploy_version/?version=${versionSelector.value}`);
         alert(await response.text());
-        document.getElementById('deployed-version').textContent = fetchDeployedVersion();
+        document.getElementById('deployed-version').textContent = await fetchDeployedVersion();
       }
 
       async function fetchDeployedVersion() {
