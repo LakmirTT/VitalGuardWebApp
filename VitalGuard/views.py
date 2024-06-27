@@ -399,3 +399,39 @@ class ExecuteQueryView(APIView):
 
         except DatabaseError:
             return Response({'error': 'Invalid query.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+class RegisterUserView(APIView):
+    def post(self, request, fomat=None):
+        name = request.data['name']
+        username = request.data['username']
+        email = request.data['email']
+        password = request.data['password']
+        user_type = request.data['user_type']
+        device_tag = request.data['device_tag']
+
+        if (not name or not username or not email or not password or not user_type):
+            return Response({'error': 'All fields are expected!'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(email=email).exists():
+            return Response({'error': 'email already used!'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not Patient.objects.filter(device_tag=device_tag).exists():
+            return Response({'error': 'wrong device tag!'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if not (user_type == 'CT' or user_type == 'DR'):
+            return Response({'error': 'wrong user type!'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        new_user = User(neme=name, username=username, email=email, password=password, user_type=user_type)
+        new_user.save()
+
+        patient = Patient.objects.get(device_tag=device_tag)
+
+        if (user_type == 'CT'):
+            patient.caretaker = new_user
+        else:
+            patient.doctor = new_user
+        patient.save()
+
+        return Response({'detail': 'user succesfully registered'}, status=status.HTTP_200_OK)

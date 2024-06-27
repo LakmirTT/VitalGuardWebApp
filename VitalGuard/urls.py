@@ -32,6 +32,8 @@ urlpatterns = [
     path('api/users/check_credentials/', views.CredentialsCheckView.as_view()),
     # get measurements for all patients
     path('api/users/get_measurements/', views.MeasurementView.as_view()),
+    # register new user
+    path('api/users/register/', views.RegisterUserView.as_view()),
 
     path('api/get_schema/', views.SchemaView.as_view(), name='get_schema'),
 

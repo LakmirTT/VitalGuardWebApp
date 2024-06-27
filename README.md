@@ -88,4 +88,17 @@ curl -X POST http://127.0.0.1:8000/vitalguard/api/device/pair_req/ \
 curl -X GET http://127.0.0.1:8000/vitalguard/api/users/get_measurements/ -H "Content-Type: application/json"
 ```
 
-# TODO: token auth
+## Create new user:
+
+```
+curl -X POST http://127.0.0.1:8000/vitalguard/api/users/register/ \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "A B",
+  "username": "asfasf",
+  "email": "asfdadf@google.com",
+  "password": "afqefgqeg",
+  "user_type": "CT",
+  "device_tag": "qfeqf"
+}'
+```
