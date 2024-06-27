@@ -64,12 +64,12 @@ def process_patient_entry(request):
 class AdminUpdaterView(APIView):
     def get(self, request, format=None):
         content = {}
-        return render(request, 'admin-panel/public/ap-updater.html', content)
+        return render(request, 'admin-panel/ap-updater.html', content)
 
 class AdminDatabaseManagerView(APIView):
     def get(self, request, format=None):
         content = {}
-        return render(request, 'admin-panel/public/ap-database-manager.html', content)
+        return render(request, 'admin-panel/ap-database-manager.html', content)
     
 class DownloadFirmwareView(APIView):
     def get(self, request, format=None):
@@ -81,7 +81,7 @@ class DownloadFirmwareView(APIView):
         with open(os.path.join("deployed-source", latest_bin_file), 'rb') as file:
             data = file.read()
         response = HttpResponse(data, content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename="firmware.bin"'
+        response['Content-Disposition'] = 'attachment; filename=' + latest_bin_file
         return response
 
 class GetSourceDirView(APIView):
