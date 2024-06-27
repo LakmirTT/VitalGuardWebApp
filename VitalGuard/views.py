@@ -250,16 +250,16 @@ class PairingRequestView(APIView):
 
             if (serializer.is_valid()):
                 serializer.save()
-                return Response({'detail': 'Patient data updated'}, {'data': patient_serializer.data}, status=status.HTTP_201_CREATED)
+                return Response({'detail': 'Patient data updated', 'data': serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'detail': 'Cannot save patient.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                  
         except Patient.DoesNotExist:    # no patient, create
             patient = Patient(name=name, surname=surname, device_tag=device_tag, is_paired=True)
-            patient_serializer = PatientSerializer(patient)
+            serializer = PatientSerializer(patient)
             #try: 
-            patient_serializer.save()
-            return Response({'detail': 'Patient added'}, {'data': patient_serializer.data}, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response({'detail': 'Patient added', 'data': serializer.data}, status=status.HTTP_201_CREATED)
             #except:
                 #return Response({'detail': 'Cannot save patient.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
