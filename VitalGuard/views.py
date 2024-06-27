@@ -154,6 +154,7 @@ class DeployVersionView(APIView):
         try:
             print('Compiling PlatformIO project:', project_dir)
             if not os.path.exists(os.path.join(project_dir, 'platformio.ini')):
+                print('Invalid PlatformIO project????????? wtf')
                 return {'success': False, 'error': 'Invalid PlatformIO project'}
 
             result = subprocess.run(['platformio', 'run'], cwd=project_dir, capture_output=True, text=True)
@@ -170,6 +171,7 @@ class DeployVersionView(APIView):
             return {'success': True, 'bin_file': bin_file}
 
         except Exception as e:
+            print('nah')
             return {'success': False, 'error': str(e)}
 
     
