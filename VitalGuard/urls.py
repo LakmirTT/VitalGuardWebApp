@@ -46,6 +46,7 @@ urlpatterns = [
     path('api/device/create_new_file/', views.CreateNewFileView.as_view(), name='create_new_file'),
     path('api/device/save_source_file/', views.SaveSourceFileView.as_view(), name='save_source_file'),
     path('api/device/deploy_version/', views.DeployVersionView.as_view(), name='deploy_version'),
+    path('api/device/download_firmware/', views.DownloadFirmwareView.as_view(), name='download_firmware'),
 
     path('api/execute_query/', views.ExecuteQueryView.as_view(), name='execute_query'),
 ]

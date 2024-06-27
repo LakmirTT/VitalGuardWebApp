@@ -70,6 +70,14 @@ class AdminDatabaseManagerView(APIView):
     def get(self, request, format=None):
         content = {}
         return render(request, 'admin-panel/public/ap-database-manager.html', content)
+    
+class DownloadFirmwareView(APIView):
+    def get(self, request, format=None):
+        with open("deployed-source/firmware.bin", 'rb') as file:
+            data = file.read()
+        response = HttpResponse(data, content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename="firmware.bin"'
+        return response
 
 class GetSourceDirView(APIView):
     def get(self, request, format=None):

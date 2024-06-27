@@ -20,16 +20,14 @@
       .nav-link.active {
         background-color: #d1e7e5;
       }
-      .username {
-        margin-right: 1rem;
-      }
     </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-md bg-light border border-info-subtle border-start-0 border-end-0 border-top-0 shadow-sm">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">
-          <img class="d-inline-block" width="50" height="55" src="/admin-panel/img/logo.png" alt="Brand Logo">
+          {% load static %}
+          <img class="d-inline-block" width="50" height="55" src="{% static 'logo.png' %}" alt="Brand Logo">
         </a>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
@@ -40,7 +38,6 @@
               <a class="nav-link" href="/vitalguard/admin/updater">Updater</a>
             </li>
           </ul>
-          <span class="navbar-text username">Username</span>
           <button class="btn btn-outline-primary" type="button">Logout</button>
         </div>
       </div>
@@ -73,7 +70,10 @@
     editor.clearSelection();
     editor.setShowPrintMargin(false);
 
-    window.onload = drawSchema;
+    document.addEventListener('DOMContentLoaded', function() {
+      drawSchema();
+      
+    });
     async function drawSchema() {
       fetch('/vitalguard/api/get_schema/')
     .then(response => response.json())
@@ -144,7 +144,7 @@
         };
         const options = {
             layout: {
-                randomSeed: 363755,
+                randomSeed: 610337,
                 improvedLayout: true,
             },
             edges: {
@@ -193,6 +193,7 @@
                     enabled: false
                 }
             });
+            console.log(network.getSeed());
         });
     })
     .catch(error => console.error('Error fetching schema:', error));

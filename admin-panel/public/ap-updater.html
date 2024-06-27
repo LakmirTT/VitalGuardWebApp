@@ -90,7 +90,8 @@ body {
     <nav class="navbar navbar-expand-md bg-light border border-info-subtle border-start-0 border-end-0 border-top-0 shadow-sm">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">
-          <img class="d-inline-block" width="50" height="55" src="/admin-panel/img/logo.png" alt="Brand Logo">
+          {% load static %}
+          <img class="d-inline-block" width="50" height="55" src="{% static 'logo.png' %}" alt="Brand Logo">
         </a>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
