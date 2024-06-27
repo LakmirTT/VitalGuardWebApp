@@ -234,34 +234,23 @@ class MeasurementView(APIView):
 class PairingRequestView(APIView):
     """
     Request device pairing.
-    Expected payload: name, surname, device_tag
+    Expected payload: device_tag
     """
     def post(self, request, format=None):
-        name = request.data['name']
-        surname = request.data['surname']
         device_tag = request.data['device_tag']
 
-        if (not name or not surname or not device_tag):
-            return Response({'detail': 'All fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if (not device_tag):
+            return Response({'detail': 'Device tag expected!'}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:    # patient exists, update
+        try:    # patient exists, OK
             patient = Patient.objects.get(device_tag=device_tag)
-            serializer = PatientSerializer(patient, request.data)
-
-            if (serializer.is_valid()):
-                serializer.save()
-                return Response({'detail': 'Patient data updated', 'data': serializer.data}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'detail': 'Cannot save patient.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            patient.is_paired = True;
+            patient.save()
+            return Response({'detail': 'Pairing OK'}, status=status.HTTP_200_OK)
                  
-        except Patient.DoesNotExist:    # no patient, create
-            patient = Patient(name=name, surname=surname, device_tag=device_tag, is_paired=True)
-            serializer = PatientSerializer(patient)
-            #try: 
-            serializer.save()
-            return Response({'detail': 'Patient added', 'data': serializer.data}, status=status.HTTP_201_CREATED)
-            #except:
-                #return Response({'detail': 'Cannot save patient.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Patient.DoesNotExist:    # no patient return error        
+            return Response({'detail': 'Illigitimate device tag, pairing denied.'}, status=status.HTTP_404_NOT_FOUND)
+
             
     
 class FeedbackView(APIView):
