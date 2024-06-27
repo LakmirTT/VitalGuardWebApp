@@ -314,6 +314,12 @@ body {
         }
         const response = await fetch(`/vitalguard/api/device/create_new_file/?path=${versionSelector.value}/${path}`);
         alert(await response.text());
+        fileTree.innerHTML = '';
+        dirBuilder(versionSelector.value).then(dir => {
+          fileTree.appendChild(dir);
+        });
+        editor.setValue('', -1);
+        document.getElementById('current_file_path').textContent = '';
       }
 
       async function saveFile() {
