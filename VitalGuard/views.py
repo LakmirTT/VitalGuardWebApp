@@ -73,15 +73,11 @@ class AdminDatabaseManagerView(APIView):
     
 class DownloadFirmwareView(APIView):
     def get(self, request, format=None):
-        bin_files = [f for f in os.listdir("deployed-source") if f.endswith(".bin")]
-        bin_files.sort()
-
-        latest_bin_file = bin_files[-1]
-
-        with open(os.path.join("deployed-source", latest_bin_file), 'rb') as file:
+        bin_file = request.GET.get('v') + ".bin"
+        with open(os.path.join("deployed-source", bin_file), 'rb') as file:
             data = file.read()
         response = HttpResponse(data, content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename=' + latest_bin_file
+        response['Content-Disposition'] = 'attachment; filename=' + bin_file
         return response
 
 class GetSourceDirView(APIView):
