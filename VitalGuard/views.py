@@ -130,7 +130,7 @@ class DeployVersionView(APIView):
         version = request.GET.get('version')
         if not os.path.exists(os.path.join("source-code", version, 'platformio.ini')):
             return HttpResponse('Invalid PlatformIO project.', status=status.HTTP_400_BAD_REQUEST)
-        result = self.compile_platformio_project(f"source-code\\{version}")
+        result = self.compile_platformio_project(os.path.join("source-code", version))
         if not result['success']:
             return HttpResponse(result['error'], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         bin_files = [f for f in os.listdir("deployed-source") if f.endswith(".bin")]
