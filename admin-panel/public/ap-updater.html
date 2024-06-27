@@ -355,7 +355,7 @@ body {
 
       async function fetchDeployedVersion() {
         try {
-          const response = await fetch('/vitalguard/api/device/get_deployed_version');
+          const response = await fetch('/vitalguard/api/device/get_deployed_version/');
           const jsondata = await response.json();
           const deployedVersion = jsondata.version;
           document.getElementById('deployed_version').textContent = deployedVersion;
